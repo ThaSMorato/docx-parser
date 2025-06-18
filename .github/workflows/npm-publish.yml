@@ -14,6 +14,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -41,6 +46,11 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -110,7 +120,7 @@ jobs:
           BUMP_TYPE=${{ steps.version-bump.outputs.bump_type }}
           echo "Bumping $BUMP_TYPE version..."
 
-          NEW_VERSION=$(npm version $BUMP_TYPE --no-git-tag-version)
+          NEW_VERSION=$(pnpm version $BUMP_TYPE --no-git-tag-version)
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
@@ -118,8 +128,8 @@ jobs:
         run: |
           NEW_VERSION=${{ steps.bump-version.outputs.new_version }}
 
-          # Commit version bump
-          git add package.json package-lock.json
+          # Commit version bump (pnpm doesn't create package-lock.json)
+          git add package.json pnpm-lock.yaml
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
 
           # Create and push tag
@@ -128,7 +138,7 @@ jobs:
           git push origin "$NEW_VERSION"
 
       - name: Build package
-        run: npm run build
+        run: pnpm build
 
       - name: Create Release Notes
         id: release-notes
@@ -151,13 +161,17 @@ jobs:
           ## Installation
           \`\`\`bash
           npm install @thasmorato/docx-parser@$NEW_VERSION
+          # or
+          pnpm add @thasmorato/docx-parser@$NEW_VERSION
+          # or
+          yarn add @thasmorato/docx-parser@$NEW_VERSION
           \`\`\`
           EOF
 
           echo "Release notes created"
 
       - name: Publish to NPM
-        run: npm publish --access public
+        run: pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

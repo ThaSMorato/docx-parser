@@ -55,13 +55,14 @@ git push origin main
 
 #### Fluxo da Action
 
-1. **Testes** → Roda todos os testes unitários, integração e E2E
-2. **Linting** → Verifica qualidade do código
-3. **Análise de Commits** → Determina tipo de bump (major/minor/patch)
-4. **Bump de Versão** → Atualiza `package.json` automaticamente
-5. **Build** → Compila o código TypeScript
-6. **Publish NPM** → Publica no registro NPM
-7. **GitHub Release** → Cria release com changelog
+1. **Setup pnpm** → Configura pnpm v8 no ambiente
+2. **Testes** → Roda todos os testes unitários, integração e E2E
+3. **Linting** → Verifica qualidade do código
+4. **Análise de Commits** → Determina tipo de bump (major/minor/patch)
+5. **Bump de Versão** → Atualiza `package.json` automaticamente
+6. **Build** → Compila o código TypeScript
+7. **Publish NPM** → Publica no registro NPM
+8. **GitHub Release** → Cria release com changelog
 
 #### Versionamento Baseado em Commits
 
@@ -97,9 +98,9 @@ Você pode acompanhar o progresso:
 #### Action Falhou nos Testes
 ```bash
 # Rode localmente primeiro
-npm test
-npm run lint
-npm run build
+pnpm test
+pnpm lint
+pnpm build
 ```
 
 #### NPM Publish Falhou
@@ -123,7 +124,7 @@ Se for a primeira vez publicando:
 
 ```bash
 # Testar localmente antes do push
-npm run prepublishOnly
+pnpm prepublishOnly
 
 # Trigger manual da action (via GitHub UI)
 # Actions → NPM Publish → Run workflow
@@ -140,18 +141,28 @@ git commit -m "docs: typo fix [skip ci]"
 - [ ] NPM_TOKEN configurado nos secrets
 - [ ] Permissões de escrita habilitadas para Actions
 - [ ] Package name disponível e correto
-- [ ] Testes passando localmente
-- [ ] Linting sem erros críticos
-- [ ] Build funcionando (`npm run build`)
+- [ ] Testes passando localmente (`pnpm test`)
+- [ ] Linting sem erros críticos (`pnpm lint`)
+- [ ] Build funcionando (`pnpm build`)
 
 ### 🔄 Fluxo de Trabalho Recomendado
 
 1. **Desenvolva** em feature branch
-2. **Teste** localmente com `npm test`
+2. **Teste** localmente com `pnpm test`
 3. **Merge** para main com commit message apropriado
 4. **Aguarde** a action completar
 5. **Verifique** a publicação no NPM
 6. **Confirme** o release no GitHub
+
+### 🔧 Diferenças do pnpm
+
+A action foi configurada para usar **pnpm** ao invés de npm:
+
+- ✅ **Setup pnpm**: Instala pnpm v8 automaticamente
+- ✅ **Cache pnpm**: Usa cache do pnpm para velocidade
+- ✅ **pnpm-lock.yaml**: Commita o lockfile correto
+- ✅ **pnpm publish**: Usa comando de publish do pnpm
+- ✅ **--no-git-checks**: Evita conflitos com git durante publish
 
 ---
 

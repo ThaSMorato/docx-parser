@@ -481,16 +481,16 @@ git clone https://github.com/ThaSMorato/docx-parser.git
 cd docx-parser
 
 # Install dependencies
-npm install
+pnpm install
 
 # Run tests
-npm test
+pnpm test
 
 # Run linting
-npm run lint
+pnpm lint
 
 # Build the project
-npm run build
+pnpm build
 ```
 
 ### Automated Publishing
