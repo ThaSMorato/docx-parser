@@ -1,6 +1,6 @@
 {
   "name": "@thasmorato/docx-parser",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A modern JavaScript library for parsing and processing Microsoft Word DOCX documents with support for both buffer and stream operations. Features incremental parsing, checkbox detection, footnote support, and document validation.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
