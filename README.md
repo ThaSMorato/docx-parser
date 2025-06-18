@@ -27,6 +27,47 @@ yarn add @thasmorato/docx-parser
 pnpm add @thasmorato/docx-parser
 ```
 
+## 📋 Main Exports
+
+The library exports only essential items for a clean API:
+
+```typescript
+// Main parsing functions
+import {
+  parseDocx,           // Buffer → AsyncGenerator
+  parseDocxStream,     // ReadStream → AsyncGenerator
+  parseDocxWebStream,  // ReadableStream → AsyncGenerator
+  parseDocxFile,       // File path → AsyncGenerator
+  parseDocxToArray,    // Any source → Promise<Array>
+  extractText,         // Extract only text
+  extractImages,       // Extract only images
+  getMetadata          // Extract only metadata
+} from 'docx-parser';
+
+// Essential types
+import type {
+  DocumentElement,     // Union of all element types
+  ParseOptions,        // Configuration options
+  ValidationResult,    // Validation response
+  MetadataElement,     // Document metadata
+  ParagraphElement,    // Text paragraphs
+  ImageElement,        // Images with metadata
+  TableElement,        // Tables with rows/cells
+  HeaderElement,       // Document headers
+  FooterElement,       // Document footers
+  ListElement,         // Lists (bullet/numbered)
+  PageBreakElement,    // Page breaks
+  SectionElement       // Document sections
+} from 'docx-parser';
+
+// Error handling
+import { DocxParseError } from 'docx-parser';
+
+// Advanced utilities
+import { StreamAdapter } from 'docx-parser';
+import { ValidateDocumentUseCaseImpl } from 'docx-parser';
+```
+
 ## 🔥 Basic Usage
 
 ### Incremental Parsing (Recommended)
