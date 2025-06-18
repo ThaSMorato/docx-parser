@@ -10,6 +10,12 @@ A modern JavaScript/TypeScript library for parsing DOCX documents using generato
 - **Clean Architecture**: Clear separation between layers (Domain, Application, Infrastructure, Interfaces)
 - **Flexible**: Extracts text, images, tables, metadata, and formatting
 - **Configurable**: Advanced options to control parsing
+- **Checkbox Detection**: Automatically detects and parses checkbox states in lists
+- **Footnote Support**: Identifies and extracts footnotes with proper references
+- **Header Levels**: Detects document structure with header hierarchy (H1-H6)
+- **Document Validation**: Built-in validation for DOCX file integrity
+- **Page Elements**: Supports headers, footers, and page breaks
+- **List Processing**: Handles numbered, bulleted, and checkbox lists
 
 ## 📦 Installation
 
@@ -135,6 +141,27 @@ console.log(`Author: ${metadata.author}`);
 console.log(`Created: ${metadata.created}`);
 ```
 
+### Document Validation
+
+#### `ValidateDocumentUseCaseImpl`
+Validates DOCX document structure and integrity.
+
+```typescript
+import { ValidateDocumentUseCaseImpl } from 'docx-parser';
+
+const validator = new ValidateDocumentUseCaseImpl();
+const result = await validator.validate(buffer);
+
+if (!result.isValid) {
+  console.log('Invalid document:');
+  result.errors.forEach(error => {
+    console.log(`- ${error.message} (${error.code})`);
+  });
+} else {
+  console.log('Valid document!');
+}
+```
+
 ## ⚙️ Configuration Options
 
 ```typescript
@@ -194,7 +221,13 @@ interface ParseOptions {
     underline?: boolean,
     color?: string,
     highlight?: string
-  }
+  },
+  // Special properties
+  checkbox?: {                 // For checkbox list items
+    checked: boolean
+  },
+  isFootnote?: boolean,        // If this is a footnote
+  footnoteId?: string          // Footnote identifier
 }
 ```
 
@@ -232,6 +265,60 @@ interface ParseOptions {
 }
 ```
 
+### HeaderElement
+```typescript
+{
+  type: 'header',
+  id: string,
+  position: { page: number, section: number, order: number },
+  content: string,
+  level: 1 | 2 | 3 | 4 | 5 | 6,
+  hasPageNumber?: boolean      // If header contains page numbers
+}
+```
+
+### FooterElement
+```typescript
+{
+  type: 'footer',
+  id: string,
+  position: { page: number, section: number, order: number },
+  content: string
+}
+```
+
+### ListElement
+```typescript
+{
+  type: 'list',
+  id: string,
+  position: { page: number, section: number, order: number },
+  content: string[],
+  listType: 'bullet' | 'number',
+  level: number
+}
+```
+
+### Additional Elements
+```typescript
+// Page breaks
+{
+  type: 'pageBreak',
+  id: string,
+  position: { page: number, section: number, order: number },
+  content: null
+}
+
+// Document sections
+{
+  type: 'section',
+  id: string,
+  position: { page: number, section: number, order: number },
+  content: string,
+  sectionType: 'header' | 'footer' | 'body'
+}
+```
+
 ## 🏗️ Advanced Examples
 
 ### Filtering Content Types
@@ -252,6 +339,54 @@ for await (const element of parseDocx(buffer, {
     element.content.forEach((row, i) => {
       console.log(`Row ${i}:`, row.cells.map(c => c.content).join(' | '));
     });
+  }
+}
+```
+
+### Working with Checkboxes
+
+```typescript
+import { parseDocx } from 'docx-parser';
+
+for await (const element of parseDocx(buffer)) {
+  if (element.type === 'paragraph' && element.checkbox) {
+    const status = element.checkbox.checked ? '✅' : '☐';
+    console.log(`${status} ${element.content}`);
+  }
+}
+```
+
+### Processing Footnotes
+
+```typescript
+import { parseDocx } from 'docx-parser';
+
+const footnotes = [];
+for await (const element of parseDocx(buffer)) {
+  if (element.type === 'paragraph' && element.isFootnote) {
+    footnotes.push({
+      id: element.footnoteId,
+      content: element.content
+    });
+  }
+}
+
+console.log('Found footnotes:', footnotes);
+```
+
+### Header Level Detection
+
+```typescript
+import { parseDocx } from 'docx-parser';
+
+for await (const element of parseDocx(buffer)) {
+  if (element.type === 'header') {
+    const indent = '  '.repeat(element.level - 1);
+    console.log(`${indent}H${element.level}: ${element.content}`);
+
+    if (element.hasPageNumber) {
+      console.log(`${indent}  (contains page number)`);
+    }
   }
 }
 ```

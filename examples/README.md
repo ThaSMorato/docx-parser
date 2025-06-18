@@ -36,6 +36,7 @@ This directory contains practical examples of using the DOCX Parser library.
 - Get document metadata (title, author, dates)
 - Handle parsing errors gracefully
 - Use different input sources (Buffer, file path)
+- Validate document structure and integrity
 
 ### Advanced Usage (`advanced-usage.ts`)
 - Selective content processing (only text, only images, etc.)
@@ -44,6 +45,9 @@ This directory contains practical examples of using the DOCX Parser library.
 - Complex table data extraction
 - Performance optimization techniques
 - Memory-efficient processing
+- Checkbox detection and processing
+- Footnote extraction and handling
+- Header level analysis and structure mapping
 
 ## Usage Tips
 

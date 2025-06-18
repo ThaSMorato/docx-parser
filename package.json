@@ -1,5 +1,5 @@
 {
-  "name": "docx-parser",
+  "name": "@thasmorato/docx-parser",
   "version": "1.0.0",
   "description": "A modern JavaScript library for parsing and processing Microsoft Word DOCX documents with support for both buffer and stream operations",
   "main": "./dist/index.js",

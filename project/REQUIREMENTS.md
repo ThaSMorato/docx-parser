@@ -176,6 +176,9 @@ async function* extractImages(source: Buffer | ReadableStream): AsyncGenerator<I
 
 // Get document metadata only
 async function getMetadata(source: Buffer | ReadableStream): Promise<MetadataElement['content']>
+
+// Validate document structure and integrity
+async function validateDocument(source: Buffer | ReadableStream): Promise<ValidationResult>
 ```
 
 ## Usage Examples
@@ -292,3 +295,41 @@ interface DocumentElement {
 4. **Backpressure**: Natural flow control
 5. **Type Safe**: Full TypeScript support with well-defined types
 6. **Developer Friendly**: Intuitive and modern API
+
+## Special Features
+
+### Checkbox Detection
+The parser automatically detects checkbox states in Word documents:
+
+```typescript
+for await (const element of parseDocx(buffer)) {
+  if (element.type === 'paragraph' && element.checkbox) {
+    console.log(`${element.checkbox.checked ? '✅' : '☐'} ${element.content}`);
+  }
+}
+```
+
+### Footnote Processing
+Footnotes are identified and extracted with proper references:
+
+```typescript
+for await (const element of parseDocx(buffer)) {
+  if (element.type === 'paragraph' && element.isFootnote) {
+    console.log(`Footnote ${element.footnoteId}: ${element.content}`);
+  }
+}
+```
+
+### Header Level Detection
+Document structure is preserved with header hierarchy:
+
+```typescript
+for await (const element of parseDocx(buffer)) {
+  if (element.type === 'header') {
+    console.log(`H${element.level}: ${element.content}`);
+    if (element.hasPageNumber) {
+      console.log('  Contains page numbering');
+    }
+  }
+}
+```
