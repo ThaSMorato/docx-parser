@@ -1,75 +1,147 @@
 /**
- * Exemplo básico de uso da biblioteca DOCX Parser
+ * Basic DOCX Parser Usage Examples
+ *
+ * This file demonstrates fundamental usage patterns of the DOCX Parser library:
+ * - Incremental parsing with async generators
+ * - Text extraction with different options
+ * - Metadata extraction
+ * - Error handling
  */
-
-import { readFileSync } from 'fs';
 
 import { extractText, getMetadata, parseDocx } from '../src';
 
-async function exemploBasico() {
-  console.log('🚀 Exemplo básico de uso da DOCX Parser\n');
-
-  // Carrega um arquivo DOCX
-  // const buffer = readFileSync('./documento.docx');
-
-  // Para este exemplo, vamos usar um buffer fictício que representaria um arquivo DOCX válido
-  // Em uso real, você carregaria um arquivo DOCX de verdade
-  console.log('⚠️  Nota: Este exemplo usa dados fictícios. Em uso real, carregue um arquivo DOCX válido.\n');
+async function basicParsingExample() {
+  console.log('=== Basic Parsing Example ===');
 
   try {
-    // 1. Parse incremental (recomendado para documentos grandes)
-    console.log('📄 1. Parse incremental:');
+    // Note: Uncomment and adjust the path to your DOCX file
+    // const buffer = readFileSync('./sample-document.docx');
 
-    // const elements = [];
-    // for await (const element of parseDocx(buffer)) {
-    //   elements.push(element);
-    //   console.log(`- ${element.type}: ${element.id}`);
-    //
-    //   if (element.type === 'paragraph') {
-    //     console.log(`  Texto: "${element.content}"`);
-    //   } else if (element.type === 'image') {
-    //     console.log(`  Imagem: ${element.metadata?.filename} (${element.metadata?.format})`);
-    //   } else if (element.type === 'table') {
-    //     console.log(`  Tabela: ${element.content.length} linhas`);
-    //   }
-    // }
+    // For this example, we'll use a mock buffer
+    const buffer = Buffer.from('sample content');
 
-    console.log('  (Use um arquivo DOCX real para ver os elementos)\n');
+    // Parse document incrementally
+    for await (const element of parseDocx(buffer)) {
+      console.log(`Element Type: ${element.type}`);
+      console.log(`Position: Page ${element.position.page}, Order ${element.position.order}`);
 
-    // 2. Extração de texto apenas
-    console.log('📝 2. Extração de texto:');
+      switch (element.type) {
+        case 'metadata':
+          console.log('📄 Document Metadata:', element.content);
+          break;
 
-    // const texto = await extractText(buffer, {
-    //   preserveFormatting: true
-    // });
-    // console.log(`Texto extraído: "${texto}"\n`);
+        case 'paragraph':
+          console.log('📝 Text:', element.content);
+          if (element.formatting) {
+            console.log('   Formatting:', element.formatting);
+          }
+          break;
 
-    console.log('  (Use um arquivo DOCX real para extrair texto)\n');
+        case 'image':
+          console.log('🖼️  Image:', {
+            filename: (element as any).metadata?.filename,
+            format: (element as any).metadata?.format,
+            size: `${element.content.length} bytes`
+          });
+          break;
 
-    // 3. Extração de metadados
-    console.log('📊 3. Metadados do documento:');
+        case 'table':
+          console.log('📊 Table with', (element.content as any[]).length, 'rows');
+          break;
+      }
 
-    // const metadata = await getMetadata(buffer);
-    // console.log(`Título: ${metadata.title || 'N/A'}`);
-    // console.log(`Autor: ${metadata.author || 'N/A'}`);
-    // console.log(`Criado em: ${metadata.created || 'N/A'}`);
-    // console.log(`Modificado em: ${metadata.modified || 'N/A'}\n`);
-
-    console.log('  (Use um arquivo DOCX real para ver metadados)\n');
-
-    console.log('✅ Exemplo concluído! Para testar com arquivo real:');
-    console.log('   1. Coloque um arquivo .docx na pasta do projeto');
-    console.log('   2. Descomente o código acima');
-    console.log('   3. Execute: npm run build && node dist/examples/basic-usage.js');
-
+      console.log('---');
+    }
   } catch (error) {
-    console.error('❌ Erro:', error instanceof Error ? error.message : error);
+    console.error('❌ Parsing Error:', error);
   }
 }
 
-// Executa o exemplo se este arquivo for executado diretamente
-if (require.main === module) {
-  exemploBasico().catch(console.error);
+async function textExtractionExample() {
+  console.log('\n=== Text Extraction Example ===');
+
+  try {
+    // Note: Uncomment and adjust the path to your DOCX file
+    // const buffer = readFileSync('./sample-document.docx');
+    const buffer = Buffer.from('sample content');
+
+    // Extract text with formatting preserved
+    const textWithFormatting = await extractText(buffer, {
+      preserveFormatting: true
+    });
+    console.log('📝 Text with formatting:', textWithFormatting);
+
+    // Extract plain text (normalized)
+    const plainText = await extractText(buffer, {
+      preserveFormatting: false
+    });
+    console.log('📄 Plain text:', plainText);
+
+  } catch (error) {
+    console.error('❌ Text extraction error:', error);
+  }
 }
 
-export { exemploBasico };
+async function metadataExample() {
+  console.log('\n=== Metadata Extraction Example ===');
+
+  try {
+    // Note: Uncomment and adjust the path to your DOCX file
+    // const buffer = readFileSync('./sample-document.docx');
+    const buffer = Buffer.from('sample content');
+
+    const metadata = await getMetadata(buffer);
+
+    console.log('📋 Document Metadata:');
+    if (metadata && typeof metadata === 'object' && !Array.isArray(metadata) && !Buffer.isBuffer(metadata)) {
+      const metaObj = metadata as any;
+      console.log('   Title:', metaObj.title || 'Not specified');
+      console.log('   Author:', metaObj.author || 'Not specified');
+      console.log('   Subject:', metaObj.subject || 'Not specified');
+      console.log('   Created:', metaObj.created || 'Not specified');
+      console.log('   Modified:', metaObj.modified || 'Not specified');
+    } else {
+      console.log('   No metadata available');
+    }
+
+  } catch (error) {
+    console.error('❌ Metadata extraction error:', error);
+  }
+}
+
+async function fileParsingExample() {
+  console.log('\n=== File Parsing Example ===');
+
+  try {
+    // Note: Uncomment and adjust the path to your DOCX file
+    // import { readFileSync } from 'fs';
+    // import { parseDocxFile } from '../src';
+    // const buffer = readFileSync('./sample-document.docx');
+    // for await (const element of parseDocxFile('./sample-document.docx')) {
+    //   console.log(`${element.type}: ${element.content}`);
+    // }
+
+    console.log('💡 To use this example, uncomment the code above and provide a valid DOCX file path');
+
+  } catch (error) {
+    console.error('❌ File parsing error:', error);
+  }
+}
+
+async function main() {
+  console.log('🚀 DOCX Parser - Basic Usage Examples\n');
+
+  await basicParsingExample();
+  await textExtractionExample();
+  await metadataExample();
+  await fileParsingExample();
+
+  console.log('\n✅ All examples completed!');
+  console.log('\n💡 Tips:');
+  console.log('   - Uncomment the file reading code to test with real DOCX files');
+  console.log('   - Adjust file paths to match your test documents');
+  console.log('   - Check the advanced-usage.ts file for more complex examples');
+}
+
+// Run examples
+main().catch(console.error);

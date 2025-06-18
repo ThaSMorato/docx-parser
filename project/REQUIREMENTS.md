@@ -2,18 +2,18 @@
 
 ## Overview
 
-Biblioteca JavaScript moderna para parsing de arquivos DOCX que retorna conteúdo de forma incremental através de generators, permitindo processamento eficiente de memória e streaming.
+Modern JavaScript library for parsing DOCX files that returns content incrementally through generators, enabling efficient memory processing and streaming.
 
 ## Core Architecture
 
 ### Generator-Based API
 
-A arquitetura principal utiliza **generators com yield** para retornar elementos do documento de forma incremental:
+The main architecture uses **generators with yield** to return document elements incrementally:
 
 ```typescript
 async function* parseDocx(source: Buffer | ReadableStream): AsyncGenerator<DocumentElement> {
   yield { type: 'metadata', content: { title: 'Doc Title', author: 'Author' } };
-  yield { type: 'paragraph', content: 'Texto do parágrafo', formatting: { bold: true } };
+  yield { type: 'paragraph', content: 'Paragraph text', formatting: { bold: true } };
   yield { type: 'image', content: buffer, metadata: { filename: 'img.png', width: 800 } };
   yield { type: 'table', content: [...rows], formatting: { borders: true } };
 }
@@ -227,23 +227,23 @@ for await (const element of parseDocx(buffer, options)) {
 const stream = fs.createReadStream('large-document.docx');
 
 for await (const element of parseDocxStream(stream, { chunkSize: 32 * 1024 })) {
-  // Process elementos um por vez sem carregar documento inteiro na memória
+  // Process elements one by one without loading entire document into memory
   await processElement(element);
 }
 ```
 
 ## Performance Requirements
 
-1. **Memory Efficiency**: Usar generators para evitar carregar documento inteiro na memória
-2. **Streaming Support**: Suportar ReadableStream para arquivos grandes
-3. **Lazy Loading**: Elementos só são parseados quando acessados via yield
-4. **Concurrent Processing**: Opção para processar elementos concorrentemente
-5. **Chunk Processing**: Processar arquivo em chunks configuráveis
+1. **Memory Efficiency**: Use generators to avoid loading entire document into memory
+2. **Streaming Support**: Support ReadableStream for large files
+3. **Lazy Loading**: Elements are only parsed when accessed via yield
+4. **Concurrent Processing**: Option to process elements concurrently
+5. **Chunk Processing**: Process file in configurable chunks
 
 ## Error Handling
 
 ```typescript
-// Errors são propagados através do generator
+// Errors are propagated through the generator
 try {
   for await (const element of parseDocx(buffer)) {
     // Process element
@@ -254,9 +254,9 @@ try {
   }
 }
 
-// Erro específico por elemento
+// Element-specific error
 interface DocumentElement {
-  // ... outros campos
+  // ... other fields
   error?: {
     type: 'warning' | 'error';
     message: string;
@@ -267,28 +267,28 @@ interface DocumentElement {
 
 ## Implementation Priorities
 
-1. **Core Generator Engine**: Implementar o parser principal com yield
-2. **Text Extraction**: Parsing de parágrafos e formatação
-3. **Image Extraction**: Extração de imagens embarcadas
-4. **Table Support**: Parsing de tabelas complexas
-5. **Metadata Extraction**: Propriedades do documento
+1. **Core Generator Engine**: Implement main parser with yield
+2. **Text Extraction**: Parsing paragraphs and formatting
+3. **Image Extraction**: Extracting embedded images
+4. **Table Support**: Parsing complex tables
+5. **Metadata Extraction**: Document properties
 6. **Stream Support**: ReadableStream input
-7. **Advanced Formatting**: Estilos, hyperlinks, etc.
-8. **Error Recovery**: Handling robusto de arquivos corrompidos
+7. **Advanced Formatting**: Styles, hyperlinks, etc.
+8. **Error Recovery**: Robust handling of corrupted files
 
 ## Technical Stack
 
 - **Core**: TypeScript, Node.js 22+
 - **ZIP Processing**: JSZip
-- **XML Parsing**: Native DOMParser ou fast-xml-parser
+- **XML Parsing**: Native DOMParser or fast-xml-parser
 - **Streaming**: Node.js Streams API
-- **Testing**: Vitest com arquivos DOCX reais
+- **Testing**: Vitest with real DOCX files
 
-## Benefits da Arquitetura com Yield
+## Benefits of Yield Architecture
 
-1. **Memory Efficient**: Processa arquivos de qualquer tamanho
-2. **Incremental Processing**: Permite parar/continuar parsing
-3. **Composable**: Fácil de combinar com outros generators/streams
-4. **Backpressure**: Controle natural de fluxo
-5. **Type Safe**: Full TypeScript support com tipos bem definidos
-6. **Developer Friendly**: API intuitiva e moderna
+1. **Memory Efficient**: Process files of any size
+2. **Incremental Processing**: Allows stopping/continuing parsing
+3. **Composable**: Easy to combine with other generators/streams
+4. **Backpressure**: Natural flow control
+5. **Type Safe**: Full TypeScript support with well-defined types
+6. **Developer Friendly**: Intuitive and modern API

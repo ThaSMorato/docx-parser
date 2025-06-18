@@ -1,161 +1,230 @@
 /**
- * Exemplo avançado de uso da biblioteca DOCX Parser
+ * Advanced DOCX Parser Usage Examples
+ *
+ * This file demonstrates advanced usage patterns:
+ * - Selective content processing
+ * - Image extraction and saving
+ * - Streaming for large files
+ * - Complex table analysis
+ * - Performance optimization
  */
 
-import { writeFileSync } from 'fs';
+import { parseDocx } from '../src';
 
-import type { ParseOptions } from '../src';
-import { extractImages, parseDocx, parseDocxFile } from '../src';
+async function selectiveProcessingExample() {
+  console.log('=== Selective Content Processing ===');
 
-async function exemploAvancado() {
-  console.log('🚀 Exemplo avançado de uso da DOCX Parser\n');
+  try {
+    // Note: Uncomment and adjust the path to your DOCX file
+    // const buffer = readFileSync('./document-with-images.docx');
+    const buffer = Buffer.from('sample content');
 
-  // Para demonstrar diferentes cenários de uso
-  console.log('⚠️  Nota: Este exemplo mostra diferentes cenários. Em uso real, use arquivos DOCX válidos.\n');
+    // Example 1: Only text content (no images, no tables)
+    console.log('📝 Text-only processing:');
+    for await (const element of parseDocx(buffer, {
+      includeImages: false,
+      includeTables: false,
+      includeMetadata: false,
+      normalizeWhitespace: true
+    })) {
+      if (element.type === 'paragraph') {
+        console.log(`   "${element.content}"`);
+      }
+    }
 
-  // Cenário 1: Processamento seletivo de conteúdo
-  console.log('🎯 1. Processamento seletivo de conteúdo:');
+    // Example 2: Only tables (for data analysis)
+    console.log('\n📊 Table-only processing:');
+    for await (const element of parseDocx(buffer, {
+      includeImages: false,
+      includeTables: true,
+      includeMetadata: false
+    })) {
+      if (element.type === 'table') {
+        console.log(`   Table with ${(element.content as any[]).length} rows`);
+        // Process table data here
+      }
+    }
 
-  const opcoesSeletivas: ParseOptions = {
-    includeMetadata: false,      // Não queremos metadados
-    includeImages: true,         // Queremos imagens
-    includeTables: true,         // Queremos tabelas
-    includeHeaders: false,       // Não queremos cabeçalhos
-    includeFooters: false,       // Não queremos rodapés
-    normalizeWhitespace: true,   // Normalizar espaços
-    maxImageSize: 5 * 1024 * 1024, // Máximo 5MB por imagem
-  };
-
-  // const buffer = readFileSync('./documento.docx');
-  // let contadores = { paragrafos: 0, tabelas: 0, imagens: 0 };
-
-  // for await (const element of parseDocx(buffer, opcoesSeletivas)) {
-  //   switch (element.type) {
-  //     case 'paragraph':
-  //       contadores.paragrafos++;
-  //       console.log(`📄 Parágrafo ${contadores.paragrafos}: ${element.content.substring(0, 50)}...`);
-  //       break;
-  //     case 'table':
-  //       contadores.tabelas++;
-  //       console.log(`📊 Tabela ${contadores.tabelas}: ${element.content.length} linhas, ${element.content[0]?.cells.length || 0} colunas`);
-  //       break;
-  //     case 'image':
-  //       contadores.imagens++;
-  //       console.log(`🖼️  Imagem ${contadores.imagens}: ${element.metadata?.filename} (${element.metadata?.format})`);
-  //       break;
-  //   }
-  // }
-
-  console.log('  (Use um arquivo DOCX real para ver o processamento seletivo)\n');
-
-  // Cenário 2: Extração e salvamento de imagens
-  console.log('🖼️  2. Extração e salvamento de imagens:');
-
-  // let imagemCount = 0;
-  // for await (const image of extractImages(buffer)) {
-  //   imagemCount++;
-  //   const nomeArquivo = image.metadata?.filename || `imagem_${imagemCount}.${image.metadata?.format}`;
-  //   const caminhoSaida = `./output/imagens/${nomeArquivo}`;
-  //
-  //   try {
-  //     writeFileSync(caminhoSaida, image.content);
-  //     console.log(`💾 Imagem salva: ${caminhoSaida} (${image.content.length} bytes)`);
-  //   } catch (error) {
-  //     console.log(`❌ Erro ao salvar ${nomeArquivo}: ${error}`);
-  //   }
-  // }
-
-  console.log('  (Use um arquivo DOCX real para extrair imagens)\n');
-
-  // Cenário 3: Processamento de arquivo grande com streaming
-  console.log('🌊 3. Processamento streaming de arquivo grande:');
-
-  const opcoesStreaming: ParseOptions = {
-    chunkSize: 32 * 1024,       // Chunks de 32KB
-    concurrent: true,           // Processamento paralelo
-    includeImages: false,       // Não carregar imagens para economizar memória
-    normalizeWhitespace: true,
-  };
-
-  // let totalElementos = 0;
-  // let totalTexto = 0;
-
-  // for await (const element of parseDocxFile('./documento-grande.docx', opcoesStreaming)) {
-  //   totalElementos++;
-  //
-  //   if (element.type === 'paragraph') {
-  //     totalTexto += element.content.length;
-  //   }
-  //
-  //   // Processa em lotes para não sobrecarregar a memória
-  //   if (totalElementos % 100 === 0) {
-  //     console.log(`📊 Processados ${totalElementos} elementos, ${totalTexto} caracteres de texto`);
-  //   }
-  // }
-
-  console.log('  (Use um arquivo DOCX grande para ver o streaming)\n');
-
-  // Cenário 4: Análise de tabelas complexas
-  console.log('📋 4. Análise de tabelas complexas:');
-
-  const opcoesTabelas: ParseOptions = {
-    includeMetadata: false,
-    includeImages: false,
-    includeTables: true,
-    preserveFormatting: true,
-  };
-
-  // for await (const element of parseDocx(buffer, opcoesTabelas)) {
-  //   if (element.type === 'table') {
-  //     console.log(`📊 Tabela encontrada:`);
-  //     console.log(`   - Linhas: ${element.content.length}`);
-  //     console.log(`   - Colunas: ${element.content[0]?.cells.length || 0}`);
-  //
-  //     // Mostra o cabeçalho se existir
-  //     if (element.content[0]?.isHeader) {
-  //       const cabecalho = element.content[0].cells.map(c => c.content).join(' | ');
-  //       console.log(`   - Cabeçalho: ${cabecalho}`);
-  //     }
-  //
-  //     // Mostra as primeiras linhas de dados
-  //     const linhasDados = element.content.filter(row => !row.isHeader).slice(0, 3);
-  //     linhasDados.forEach((linha, i) => {
-  //       const dados = linha.cells.map(c => c.content).join(' | ');
-  //       console.log(`   - Linha ${i + 1}: ${dados}`);
-  //     });
-  //
-  //     if (element.content.length > 4) {
-  //       console.log(`   - ... e mais ${element.content.length - 4} linhas`);
-  //     }
-  //     console.log('');
-  //   }
-  // }
-
-  console.log('  (Use um arquivo DOCX com tabelas para ver a análise)\n');
-
-  console.log('✅ Exemplos avançados concluídos!');
-  console.log('💡 Dicas:');
-  console.log('   - Use processamento seletivo para melhor performance');
-  console.log('   - Configure chunkSize baseado no tamanho dos documentos');
-  console.log('   - Desative imagens para documentos grandes se não precisar');
-  console.log('   - Use streaming para arquivos muito grandes');
-}
-
-// Função utilitária para criar diretório de saída
-function criarDiretorioSaida() {
-  const fs = require('fs');
-  const path = require('path');
-
-  const outputDir = path.join(process.cwd(), 'output', 'imagens');
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
+  } catch (error) {
+    console.error('❌ Error in selective processing:', error);
   }
 }
 
-// Executa o exemplo se este arquivo for executado diretamente
-if (typeof require !== 'undefined' && require.main === module) {
-  criarDiretorioSaida();
-  exemploAvancado().catch(console.error);
+async function imageExtractionExample() {
+  console.log('\n=== Image Extraction and Saving ===');
+
+  try {
+    console.log('🖼️  Extracting images...');
+
+    const imageCount = 0;
+    // Note: To extract images, uncomment the following code:
+    // import { readFileSync, writeFileSync } from 'fs';
+    // import { extractImages } from '../src';
+    // const buffer = readFileSync('./document-with-images.docx');
+    // for await (const image of extractImages(buffer)) {
+    //   imageCount++;
+    //   const filename = image.metadata?.filename || `extracted_image_${imageCount}.${image.metadata?.format}`;
+    //
+    //   console.log(`   Found image: ${filename}`);
+    //   console.log(`   Format: ${image.metadata?.format}`);
+    //   console.log(`   Size: ${image.content.length} bytes`);
+    //
+    //   // Save image to file
+    //   writeFileSync(`./output/${filename}`, image.content);
+    //   console.log(`   ✅ Saved as: ./output/${filename}`);
+    // }
+
+    console.log(`💡 To extract images, uncomment the code above and provide a DOCX file with images`);
+    console.log(`   Total images found: ${imageCount}`);
+
+  } catch (error) {
+    console.error('❌ Error in image extraction:', error);
+  }
 }
 
-export { exemploAvancado };
+async function streamingExample() {
+  console.log('\n=== Streaming for Large Files ===');
+
+  try {
+    console.log('🚀 Streaming configuration:');
+    console.log('   Chunk size: 128KB');
+    console.log('   Concurrent processing: enabled');
+    console.log('   Images: disabled for performance');
+
+    // Note: To use streaming, uncomment the following code:
+    // import { parseDocxFile } from '../src';
+    // const streamingOptions = {
+    //   chunkSize: 128 * 1024,      // 128KB chunks
+    //   concurrent: true,           // Parallel processing
+    //   includeImages: false,       // Skip images for performance
+    //   normalizeWhitespace: true   // Clean up text
+    // };
+    // for await (const element of parseDocxFile('./large-document.docx', streamingOptions)) {
+    //   // Process element immediately to avoid memory buildup
+    //   await processElementImmediately(element);
+    // }
+
+    console.log('💡 Use this pattern for documents > 10MB');
+
+  } catch (error) {
+    console.error('❌ Error in streaming:', error);
+  }
+}
+
+async function complexTableAnalysisExample() {
+  console.log('\n=== Complex Table Analysis ===');
+
+  try {
+    // Note: Uncomment and adjust the path to your DOCX file
+    // const buffer = readFileSync('./document-with-tables.docx');
+    const buffer = Buffer.from('sample content');
+
+    console.log('📊 Analyzing tables...');
+
+    const tableStats = {
+      totalTables: 0,
+      totalRows: 0,
+      totalCells: 0,
+      largestTable: 0
+    };
+
+    for await (const element of parseDocx(buffer, {
+      includeImages: false,
+      includeTables: true,
+      includeMetadata: false
+    })) {
+      if (element.type === 'table') {
+        const table = element.content as any[];
+        const rowCount = table.length;
+        const cellCount = table.reduce((sum, row) => sum + row.cells.length, 0);
+
+        tableStats.totalTables++;
+        tableStats.totalRows += rowCount;
+        tableStats.totalCells += cellCount;
+        tableStats.largestTable = Math.max(tableStats.largestTable, rowCount);
+
+        console.log(`   Table ${tableStats.totalTables}:`);
+        console.log(`     Rows: ${rowCount}`);
+        console.log(`     Cells: ${cellCount}`);
+
+        // Example: Extract data from first row (headers)
+        if (table.length > 0) {
+          const headers = table[0].cells.map((cell: any) => cell.content);
+          console.log(`     Headers: ${headers.join(' | ')}`);
+        }
+      }
+    }
+
+    console.log('\n📈 Table Statistics:');
+    console.log(`   Total tables: ${tableStats.totalTables}`);
+    console.log(`   Total rows: ${tableStats.totalRows}`);
+    console.log(`   Total cells: ${tableStats.totalCells}`);
+    console.log(`   Largest table: ${tableStats.largestTable} rows`);
+
+  } catch (error) {
+    console.error('❌ Error in table analysis:', error);
+  }
+}
+
+async function performanceOptimizationExample() {
+  console.log('\n=== Performance Optimization ===');
+
+  try {
+    console.log('⚡ Performance-optimized configuration:');
+    console.log('   - Metadata: disabled');
+    console.log('   - Images: disabled');
+    console.log('   - Formatting: disabled');
+    console.log('   - Chunk size: 256KB');
+    console.log('   - Concurrent: enabled');
+
+    const startTime = Date.now();
+
+    // Note: To test performance, uncomment the following code:
+    // const fastOptions = {
+    //   includeMetadata: false,     // Skip metadata parsing
+    //   includeImages: false,       // Skip image processing
+    //   includeTables: true,        // Keep tables (needed for analysis)
+    //   includeHeaders: false,      // Skip headers/footers
+    //   includeFooters: false,
+    //   preserveFormatting: false,  // Skip formatting parsing
+    //   normalizeWhitespace: true,  // Clean text
+    //   chunkSize: 256 * 1024,      // Large chunks
+    //   concurrent: true            // Parallel processing
+    // };
+    // let elementCount = 0;
+    // for await (const element of parseDocx(buffer, fastOptions)) {
+    //   elementCount++;
+    //   // Minimal processing for speed
+    // }
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
+    console.log(`⏱️  Processing completed in ${duration}ms`);
+    console.log('💡 Use these settings when you only need text content');
+
+  } catch (error) {
+    console.error('❌ Error in performance optimization:', error);
+  }
+}
+
+async function main() {
+  console.log('🚀 DOCX Parser - Advanced Usage Examples\n');
+
+  await selectiveProcessingExample();
+  await imageExtractionExample();
+  await streamingExample();
+  await complexTableAnalysisExample();
+  await performanceOptimizationExample();
+
+  console.log('\n✅ All advanced examples completed!');
+  console.log('\n💡 Advanced Tips:');
+  console.log('   - Use selective processing to improve performance');
+  console.log('   - Stream large files to avoid memory issues');
+  console.log('   - Disable features you don\'t need (images, formatting, etc.)');
+  console.log('   - Process elements immediately in streaming mode');
+  console.log('   - Adjust chunk sizes based on your system\'s memory');
+}
+
+// Run examples
+main().catch(console.error);

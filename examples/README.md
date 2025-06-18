@@ -1,167 +1,68 @@
-# Exemplos de Uso - DOCX Parser
+# DOCX Parser Examples
 
-Este diretório contém exemplos práticos de como usar a biblioteca DOCX Parser.
+This directory contains practical examples of using the DOCX Parser library.
 
-## 📋 Exemplos Disponíveis
+## Files
 
-### 1. Uso Básico (`basic-usage.ts`)
-Demonstra os conceitos fundamentais:
-- Parse incremental de documentos
-- Extração de texto
-- Extração de metadados
-- Tratamento de erros
+- **`basic-usage.ts`** - Basic examples with incremental parsing, text extraction, metadata, and error handling
+- **`advanced-usage.ts`** - Advanced scenarios including selective processing, image extraction, streaming for large files, complex table analysis
 
-### 2. Uso Avançado (`advanced-usage.ts`)
-Exemplos mais complexos:
-- Processamento seletivo de conteúdo
-- Extração e salvamento de imagens
-- Streaming para arquivos grandes
-- Análise de tabelas complexas
+## How to Run
 
-## 🚀 Como Executar
+1. **Install dependencies** (if not already done):
+   ```bash
+   npm install
+   ```
 
-### Pré-requisitos
-1. Build da biblioteca: `npm run build`
-2. Tenha um arquivo DOCX de teste disponível
+2. **Compile TypeScript** (if needed):
+   ```bash
+   npm run build
+   ```
 
-### Executando os Exemplos
+3. **Run the examples**:
+   ```bash
+   # Basic usage
+   npx tsx examples/basic-usage.ts
 
-```bash
-# Exemplo básico
-node dist/examples/basic-usage.js
+   # Advanced usage
+   npx tsx examples/advanced-usage.ts
+   ```
 
-# Exemplo avançado
-node dist/examples/advanced-usage.js
-```
+## What You'll Learn
 
-## 📝 Personalizando os Exemplos
+### Basic Usage (`basic-usage.ts`)
+- How to parse DOCX documents incrementally
+- Extract text content with and without formatting
+- Get document metadata (title, author, dates)
+- Handle parsing errors gracefully
+- Use different input sources (Buffer, file path)
 
-1. **Coloque seu arquivo DOCX** na pasta do projeto
-2. **Descomente o código** nos exemplos (está comentado para evitar erros sem arquivo)
-3. **Ajuste os caminhos** dos arquivos conforme necessário
-4. **Configure as opções** de parsing conforme suas necessidades
+### Advanced Usage (`advanced-usage.ts`)
+- Selective content processing (only text, only images, etc.)
+- Extract and save images from documents
+- Stream processing for large files
+- Complex table data extraction
+- Performance optimization techniques
+- Memory-efficient processing
 
-## 💡 Dicas de Uso
+## Usage Tips
 
-### Para Documentos Pequenos (< 1MB)
-```typescript
-import { parseDocxToArray } from 'docx-parser';
+1. **For large documents**: Use streaming parsing to avoid memory issues
+2. **Filter content**: Only include the elements you need (images, tables, etc.)
+3. **Error handling**: Always wrap parsing in try-catch blocks
+4. **Performance**: Adjust chunk sizes and concurrent processing based on your needs
 
-const elements = await parseDocxToArray(buffer);
-// Processa todos os elementos de uma vez
-```
+## Sample Documents
 
-### Para Documentos Grandes (> 1MB)
-```typescript
-import { parseDocx } from 'docx-parser';
+The examples expect to find sample DOCX files. You can:
+- Create your own test documents
+- Use any DOCX file you have available
+- Generate test documents with various content types (text, images, tables)
 
-for await (const element of parseDocx(buffer, {
-  chunkSize: 64 * 1024,
-  concurrent: true
-})) {
-  // Processa elemento por elemento
-}
-```
+## Next Steps
 
-### Para Extrair Apenas Texto
-```typescript
-import { extractText } from 'docx-parser';
-
-const texto = await extractText(buffer, {
-  preserveFormatting: false,
-  normalizeWhitespace: true
-});
-```
-
-### Para Processar Imagens
-```typescript
-import { extractImages } from 'docx-parser';
-
-for await (const image of extractImages(buffer)) {
-  const filename = `image_${Date.now()}.${image.metadata?.format}`;
-  writeFileSync(filename, image.content);
-}
-```
-
-## 🔧 Configurações Comuns
-
-### Performance Otimizada
-```typescript
-const options = {
-  includeImages: false,     // Pula imagens para ser mais rápido
-  includeTables: true,      // Inclui tabelas
-  normalizeWhitespace: true,
-  chunkSize: 128 * 1024,    // Chunks maiores
-  concurrent: true          // Processamento paralelo
-};
-```
-
-### Extração Completa
-```typescript
-const options = {
-  includeMetadata: true,
-  includeImages: true,
-  includeTables: true,
-  includeHeaders: true,
-  includeFooters: true,
-  preserveFormatting: true,
-  maxImageSize: 50 * 1024 * 1024  // 50MB max por imagem
-};
-```
-
-### Apenas Conteúdo de Texto
-```typescript
-const options = {
-  includeMetadata: false,
-  includeImages: false,
-  includeTables: false,
-  includeHeaders: false,
-  includeFooters: false,
-  normalizeWhitespace: true
-};
-```
-
-## 📊 Tipos de Elementos
-
-Cada elemento retornado tem a estrutura:
-
-```typescript
-{
-  type: 'metadata' | 'paragraph' | 'image' | 'table' | 'header' | 'footer',
-  id: string,
-  position: { page: number, section: number, order: number },
-  content: any,  // Varia conforme o tipo
-  // ... outros campos específicos do tipo
-}
-```
-
-## 🚨 Tratamento de Erros
-
-```typescript
-import { DocxParseError } from 'docx-parser';
-
-try {
-  for await (const element of parseDocx(buffer)) {
-    // Processa elemento
-  }
-} catch (error) {
-  if (error instanceof DocxParseError) {
-    console.error('Erro específico do DOCX:', error.message);
-  } else {
-    console.error('Erro geral:', error);
-  }
-}
-```
-
-## 📞 Suporte
-
-Se tiver dúvidas sobre os exemplos ou encontrar problemas:
-
-1. Verifique se o arquivo DOCX é válido
-2. Confira se as dependências estão instaladas
-3. Execute `npm run build` antes de testar
-4. Veja a documentação principal no README.md
-
----
-
-**Boa codificação! 🎉**
+After running these examples, you can:
+- Integrate the library into your own projects
+- Customize parsing options for your specific needs
+- Build applications that process DOCX documents at scale
+- Contribute improvements back to the library

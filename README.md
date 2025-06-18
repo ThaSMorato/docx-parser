@@ -1,67 +1,67 @@
 # DOCX Parser
 
-Uma biblioteca JavaScript/TypeScript moderna para parsing de documentos DOCX usando arquitetura de generators e Clean Architecture.
+A modern JavaScript/TypeScript library for parsing DOCX documents using generator architecture and Clean Architecture.
 
-## 🚀 Características
+## 🚀 Features
 
-- **Streaming**: Processa documentos DOCX de forma incremental usando async generators
-- **Memory Efficient**: Não carrega todo o documento na memória
-- **TypeScript**: Tipagem completa com interfaces bem definidas
-- **Clean Architecture**: Separação clara entre camadas (Domain, Application, Infrastructure, Interfaces)
-- **Flexível**: Extrai texto, imagens, tabelas, metadados e formatação
-- **Configurável**: Opções avançadas para controlar o parsing
+- **Streaming**: Processes DOCX documents incrementally using async generators
+- **Memory Efficient**: Doesn't load the entire document into memory
+- **TypeScript**: Complete typing with well-defined interfaces
+- **Clean Architecture**: Clear separation between layers (Domain, Application, Infrastructure, Interfaces)
+- **Flexible**: Extracts text, images, tables, metadata, and formatting
+- **Configurable**: Advanced options to control parsing
 
-## 📦 Instalação
+## 📦 Installation
 
 ```bash
 npm install docx-parser
-# ou
+# or
 yarn add docx-parser
-# ou
+# or
 pnpm add docx-parser
 ```
 
-## 🔥 Uso Básico
+## 🔥 Basic Usage
 
-### Parse Incremental (Recomendado)
+### Incremental Parsing (Recommended)
 
 ```typescript
 import { parseDocx } from 'docx-parser';
 import { readFileSync } from 'fs';
 
-const buffer = readFileSync('documento.docx');
+const buffer = readFileSync('document.docx');
 
-// Processa documento incrementalmente
+// Process document incrementally
 for await (const element of parseDocx(buffer)) {
-  console.log(`Tipo: ${element.type}`);
+  console.log(`Type: ${element.type}`);
 
   if (element.type === 'paragraph') {
-    console.log(`Texto: ${element.content}`);
+    console.log(`Text: ${element.content}`);
   } else if (element.type === 'image') {
-    console.log(`Imagem: ${element.metadata?.filename}`);
+    console.log(`Image: ${element.metadata?.filename}`);
   } else if (element.type === 'table') {
-    console.log(`Tabela com ${element.content.length} linhas`);
+    console.log(`Table with ${element.content.length} rows`);
   }
 }
 ```
 
-### Parse de Arquivo
+### File Parsing
 
 ```typescript
 import { parseDocxFile } from 'docx-parser';
 
-// Lê arquivo diretamente do sistema
-for await (const element of parseDocxFile('./documento.docx')) {
+// Read file directly from filesystem
+for await (const element of parseDocxFile('./document.docx')) {
   console.log(element.type, element.content);
 }
 ```
 
-### Parse de Stream
+### Stream Parsing
 
 ```typescript
 import { parseDocxStream } from 'docx-parser';
 
-const response = await fetch('https://exemplo.com/documento.docx');
+const response = await fetch('https://example.com/document.docx');
 const stream = response.body!;
 
 for await (const element of parseDocxStream(stream)) {
@@ -69,12 +69,12 @@ for await (const element of parseDocxStream(stream)) {
 }
 ```
 
-## 🛠️ API Completa
+## 🛠️ Complete API
 
-### Funções Principais
+### Main Functions
 
 #### `parseDocx(buffer, options?)`
-Processa um Buffer DOCX incrementalmente.
+Processes a DOCX Buffer incrementally.
 
 ```typescript
 import { parseDocx } from 'docx-parser';
@@ -85,82 +85,82 @@ for await (const element of parseDocx(buffer, {
   includeTables: true,
   normalizeWhitespace: true
 })) {
-  // Processa cada elemento
+  // Process each element
 }
 ```
 
 #### `parseDocxToArray(source, options?)`
-Retorna todos os elementos como array (não-streaming).
+Returns all elements as an array (non-streaming).
 
 ```typescript
 import { parseDocxToArray } from 'docx-parser';
 
 const elements = await parseDocxToArray(buffer);
-console.log(`Documento tem ${elements.length} elementos`);
+console.log(`Document has ${elements.length} elements`);
 ```
 
 #### `extractText(source, options?)`
-Extrai apenas o texto do documento.
+Extracts only text from the document.
 
 ```typescript
 import { extractText } from 'docx-parser';
 
-const texto = await extractText(buffer, {
+const text = await extractText(buffer, {
   preserveFormatting: true
 });
-console.log(texto);
+console.log(text);
 ```
 
 #### `extractImages(source)`
-Extrai apenas as imagens do documento.
+Extracts only images from the document.
 
 ```typescript
 import { extractImages } from 'docx-parser';
 
 for await (const image of extractImages(buffer)) {
-  console.log(`Imagem: ${image.metadata?.filename}`);
-  // image.content contém o Buffer da imagem
+  console.log(`Image: ${image.metadata?.filename}`);
+  // image.content contains the image Buffer
 }
 ```
 
 #### `getMetadata(source)`
-Extrai apenas os metadados do documento.
+Extracts only metadata from the document.
 
 ```typescript
 import { getMetadata } from 'docx-parser';
 
 const metadata = await getMetadata(buffer);
-console.log(`Título: ${metadata.title}`);
-console.log(`Autor: ${metadata.author}`);
-console.log(`Criado em: ${metadata.created}`);
+console.log(`Title: ${metadata.title}`);
+console.log(`Author: ${metadata.author}`);
+console.log(`Created: ${metadata.created}`);
 ```
 
-## ⚙️ Opções de Configuração
+## ⚙️ Configuration Options
 
 ```typescript
 interface ParseOptions {
-  // Controle de conteúdo
-  includeMetadata?: boolean;     // Incluir metadados (padrão: true)
-  includeImages?: boolean;       // Incluir imagens (padrão: true)
-  includeTables?: boolean;       // Incluir tabelas (padrão: true)
-  includeHeaders?: boolean;      // Incluir cabeçalhos (padrão: false)
-  includeFooters?: boolean;      // Incluir rodapés (padrão: false)
+  // Content control
+  includeMetadata?: boolean;     // Include metadata (default: true)
+  includeImages?: boolean;       // Include images (default: true)
+  includeTables?: boolean;       // Include tables (default: true)
+  includeHeaders?: boolean;      // Include headers (default: false)
+  includeFooters?: boolean;      // Include footers (default: false)
 
-  // Processamento de imagens
-  imageFormat?: 'buffer' | 'base64' | 'stream';  // Formato das imagens
-  maxImageSize?: number;         // Tamanho máximo em bytes (padrão: 10MB)
+  // Image processing
+  imageFormat?: 'buffer' | 'base64' | 'stream';  // Image format
+  maxImageSize?: number;         // Maximum size in bytes (default: 10MB)
 
-  // Formatação de texto
-  preserveFormatting?: boolean;  // Preservar formatação (padrão: true)
-  normalizeWhitespace?: boolean; // Normalizar espaços (padrão: true)
+  // Text formatting
+  preserveFormatting?: boolean;  // Preserve formatting (default: true)
+  normalizeWhitespace?: boolean; // Normalize whitespace (default: true)
 
   // Performance
-  chunkSize?: number;           // Tamanho do chunk (padrão: 64KB)
-  concurrent?: boolean;         // Processamento paralelo (padrão: false)
+  chunkSize?: number;           // Chunk size (default: 64KB)
+  concurrent?: boolean;         // Parallel processing (default: false)
 }
 ```
 
-## 📋 Tipos de Elementos
+## 📋 Element Types
 
 ### MetadataElement
 ```typescript
@@ -174,7 +174,7 @@ interface ParseOptions {
     subject?: string,
     created?: Date,
     modified?: Date,
-    // ... outros metadados
+    // ... other metadata
   }
 }
 ```
@@ -232,31 +232,31 @@ interface ParseOptions {
 }
 ```
 
-## 🏗️ Exemplos Avançados
+## 🏗️ Advanced Examples
 
-### Filtrando Tipos de Conteúdo
+### Filtering Content Types
 
 ```typescript
 import { parseDocx } from 'docx-parser';
 
-// Só processa texto e tabelas
+// Only process text and tables
 for await (const element of parseDocx(buffer, {
   includeImages: false,
   includeMetadata: false,
   includeTables: true
 })) {
   if (element.type === 'paragraph') {
-    console.log('Parágrafo:', element.content);
+    console.log('Paragraph:', element.content);
   } else if (element.type === 'table') {
-    console.log('Tabela encontrada');
+    console.log('Table found');
     element.content.forEach((row, i) => {
-      console.log(`Linha ${i}:`, row.cells.map(c => c.content).join(' | '));
+      console.log(`Row ${i}:`, row.cells.map(c => c.content).join(' | '));
     });
   }
 }
 ```
 
-### Processamento de Imagens
+### Image Processing
 
 ```typescript
 import { writeFileSync } from 'fs';
@@ -266,11 +266,11 @@ let imageCount = 0;
 for await (const image of extractImages(buffer)) {
   const filename = image.metadata?.filename || `image_${++imageCount}.${image.metadata?.format}`;
   writeFileSync(`./output/${filename}`, image.content);
-  console.log(`Imagem salva: ${filename}`);
+  console.log(`Image saved: ${filename}`);
 }
 ```
 
-### Validação de Documento
+### Document Validation
 
 ```typescript
 import { ValidateDocumentUseCaseImpl } from 'docx-parser';
@@ -279,33 +279,33 @@ const validator = new ValidateDocumentUseCaseImpl();
 const result = await validator.validate(buffer);
 
 if (!result.isValid) {
-  console.log('Documento inválido:');
+  console.log('Invalid document:');
   result.errors.forEach(error => {
     console.log(`- ${error.message} (${error.code})`);
   });
 } else {
-  console.log('Documento válido!');
+  console.log('Valid document!');
 }
 ```
 
-## 🔧 Arquitetura
+## 🔧 Architecture
 
-A biblioteca segue Clean Architecture com 4 camadas:
+The library follows Clean Architecture with 4 layers:
 
-- **Domain**: Tipos, interfaces e regras de negócio
-- **Application**: Use cases e lógica de aplicação
-- **Infrastructure**: Implementações concretas (JSZip, XML parsing)
-- **Interfaces**: API pública e controllers
+- **Domain**: Types, interfaces, and business rules
+- **Application**: Use cases and application logic
+- **Infrastructure**: Concrete implementations (JSZip, XML parsing)
+- **Interfaces**: Public API and controllers
 
 ```
 src/
-├── domain/           # Entidades e regras de negócio
-├── application/      # Use cases e lógica de aplicação
-├── infrastructure/   # Adaptadores e implementações
-└── interfaces/       # API pública
+├── domain/           # Entities and business rules
+├── application/      # Use cases and application logic
+├── infrastructure/   # Adapters and implementations
+└── interfaces/       # Public API
 ```
 
-## 🚨 Tratamento de Erros
+## 🚨 Error Handling
 
 ```typescript
 import { DocxParseError } from 'docx-parser';
@@ -316,40 +316,40 @@ try {
   }
 } catch (error) {
   if (error instanceof DocxParseError) {
-    console.log('Erro específico do DOCX:', error.message);
+    console.log('DOCX-specific error:', error.message);
   } else {
-    console.log('Erro geral:', error);
+    console.log('General error:', error);
   }
 }
 ```
 
 ## 📝 Performance Tips
 
-1. **Use streaming**: Prefira `parseDocx()` ao invés de `parseDocxToArray()` para documentos grandes
-2. **Filtre conteúdo**: Desative `includeImages` se não precisar de imagens
-3. **Chunk size**: Ajuste `chunkSize` conforme o tamanho dos documentos
-4. **Limite imagens**: Use `maxImageSize` para evitar imagens muito grandes
+1. **Use streaming**: Prefer `parseDocx()` over `parseDocxToArray()` for large documents
+2. **Filter content**: Disable `includeImages` if you don't need images
+3. **Chunk size**: Adjust `chunkSize` based on document sizes
+4. **Limit images**: Use `maxImageSize` to avoid very large images
 
-## 🤝 Contribuição
+## 🤝 Contributing
 
-1. Fork o projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
-5. Abra um Pull Request
+1. Fork the project
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
 
-## 📄 Licença
+## 📄 License
 
-MIT License - veja [LICENSE](LICENSE) para detalhes.
+MIT License - see [LICENSE](LICENSE) for details.
 
-## 🐛 Reportar Bugs
+## 🐛 Reporting Bugs
 
-Abra uma issue no GitHub com:
-- Versão da biblioteca
-- Arquivo DOCX de exemplo (se possível)
-- Código que reproduz o problema
-- Erro completo
+Open an issue on GitHub with:
+- Library version
+- Sample DOCX file (if possible)
+- Code that reproduces the problem
+- Complete error message
 
 ---
 
-**Feito com ❤️ e TypeScript**
+**Made with ❤️ and TypeScript**
