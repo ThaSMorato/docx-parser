@@ -1,5 +1,4 @@
 import { createReadStream, readFileSync } from 'fs';
-import { ReadableStream } from 'node:stream/web';
 
 import { describe, expect, it } from 'vitest';
 
@@ -45,21 +44,9 @@ describe('E2E: DOCX Parsing by Element Type', () => {
 
     it('should parse paragraphs from stream', async () => {
       const fileStream = createReadStream(DOCX_FILE);
-      const webStream = new ReadableStream({
-        start(controller) {
-          fileStream.on('data', (chunk) => {
-            const uint8Array = chunk instanceof Buffer
-              ? new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
-              : new Uint8Array(Buffer.from(chunk));
-            controller.enqueue(uint8Array);
-          });
-          fileStream.on('end', () => controller.close());
-          fileStream.on('error', (err) => controller.error(err));
-        }
-      });
 
       const elements: DocumentElement[] = [];
-      for await (const element of parseDocxStream(webStream)) {
+      for await (const element of parseDocxStream(fileStream)) {
         elements.push(element);
       }
 
@@ -734,21 +721,9 @@ describe('E2E: DOCX Parsing by Element Type', () => {
 
       // Stream parsing
       const fileStream = createReadStream(DOCX_FILE);
-      const webStream = new ReadableStream({
-        start(controller) {
-          fileStream.on('data', (chunk) => {
-            const uint8Array = chunk instanceof Buffer
-              ? new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength)
-              : new Uint8Array(Buffer.from(chunk));
-            controller.enqueue(uint8Array);
-          });
-          fileStream.on('end', () => controller.close());
-          fileStream.on('error', (err) => controller.error(err));
-        }
-      });
 
       const streamElements: DocumentElement[] = [];
-      for await (const element of parseDocxStream(webStream)) {
+      for await (const element of parseDocxStream(fileStream)) {
         streamElements.push(element);
       }
 

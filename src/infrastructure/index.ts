@@ -9,6 +9,7 @@ export const INFRASTRUCTURE_VERSION = '1.0.0';
 // Adapters
 export * from './adapters/zip-adapter';
 export * from './adapters/xml-adapter';
+export * from './adapters/stream-adapter';
 
 // Repositories
 export * from './repositories/docx-repository';

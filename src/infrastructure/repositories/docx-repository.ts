@@ -2,6 +2,7 @@ import type { ReadableStream } from 'node:stream/web';
 
 import type { DocumentRepository } from '../../domain/repositories';
 import { type DocumentElement, DocxParseError, type ParseOptions } from '../../domain/types';
+import { StreamAdapter } from '../adapters/stream-adapter';
 import { XmlAdapter } from '../adapters/xml-adapter';
 import { ZipAdapter } from '../adapters/zip-adapter';
 
@@ -22,7 +23,7 @@ export class DocxRepository implements DocumentRepository {
       // Convert ReadableStream to Buffer if needed
       const buffer = source instanceof Buffer
         ? source
-        : await this.streamToBuffer(source as ReadableStream);
+        : await StreamAdapter.toBuffer(source as ReadableStream);
 
       // Set default options
       const opts: Required<ParseOptions> = {
@@ -72,26 +73,6 @@ export class DocxRepository implements DocumentRepository {
         `Failed to parse DOCX document: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
-  }
-
-  private async streamToBuffer(stream: ReadableStream): Promise<Buffer> {
-    const chunks: Uint8Array[] = [];
-    const reader = stream.getReader();
-
-    try {
-      let done = false;
-      while (!done) {
-        const result = await reader.read();
-        done = result.done;
-        if (result.value) {
-          chunks.push(result.value);
-        }
-      }
-    } finally {
-      reader.releaseLock();
-    }
-
-    return Buffer.concat(chunks);
   }
 
   private async* extractMetadata(

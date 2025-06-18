@@ -36,6 +36,7 @@ export {
 export {
   parseDocx,
   parseDocxStream,
+  parseDocxWebStream,
   parseDocxFile,
   parseDocxToArray,
   extractText,

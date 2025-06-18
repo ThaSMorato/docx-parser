@@ -65,14 +65,38 @@ for await (const element of parseDocxFile('./document.docx')) {
 ### Stream Parsing
 
 ```typescript
-import { parseDocxStream } from 'docx-parser';
+import { parseDocxStream, parseDocxWebStream } from 'docx-parser';
+import { createReadStream } from 'fs';
 
-const response = await fetch('https://example.com/document.docx');
-const stream = response.body!;
-
-for await (const element of parseDocxStream(stream)) {
+// Usando ReadStream do Node.js (recomendado para arquivos locais)
+const fileStream = createReadStream('./document.docx');
+for await (const element of parseDocxStream(fileStream)) {
   console.log(element.type);
 }
+
+// Usando ReadableStream da web (para fetch, responses, etc.)
+const response = await fetch('https://example.com/document.docx');
+const webStream = response.body!;
+for await (const element of parseDocxWebStream(webStream)) {
+  console.log(element.type);
+}
+```
+
+### StreamAdapter Utility
+
+```typescript
+import { StreamAdapter } from 'docx-parser';
+import { createReadStream } from 'fs';
+
+// Converter ReadStream para ReadableStream da web
+const nodeStream = createReadStream('./document.docx');
+const webStream = StreamAdapter.toWebStream(nodeStream);
+
+// Converter ReadableStream para Buffer
+const buffer = await StreamAdapter.toBuffer(webStream);
+
+// Criar ReadableStream a partir de Buffer
+const streamFromBuffer = StreamAdapter.fromBuffer(buffer);
 ```
 
 ## 🛠️ Complete API
@@ -84,6 +108,7 @@ Processes a DOCX Buffer incrementally.
 
 ```typescript
 import { parseDocx } from 'docx-parser';
+import { readFileSync } from 'fs';
 
 const buffer = readFileSync('doc.docx');
 for await (const element of parseDocx(buffer, {
@@ -95,13 +120,46 @@ for await (const element of parseDocx(buffer, {
 }
 ```
 
+#### `parseDocxStream(stream, options?)`
+Processes a DOCX ReadStream (Node.js) incrementally.
+
+```typescript
+import { parseDocxStream } from 'docx-parser';
+import { createReadStream } from 'fs';
+
+const stream = createReadStream('doc.docx');
+for await (const element of parseDocxStream(stream)) {
+  // Process each element
+}
+```
+
+#### `parseDocxWebStream(stream, options?)`
+Processes a DOCX ReadableStream (Web API) incrementally.
+
+```typescript
+import { parseDocxWebStream } from 'docx-parser';
+
+const response = await fetch('document.docx');
+const stream = response.body!;
+for await (const element of parseDocxWebStream(stream)) {
+  // Process each element
+}
+```
+
 #### `parseDocxToArray(source, options?)`
 Returns all elements as an array (non-streaming).
 
 ```typescript
 import { parseDocxToArray } from 'docx-parser';
+import { createReadStream } from 'fs';
 
+// From buffer
 const elements = await parseDocxToArray(buffer);
+
+// From ReadStream
+const stream = createReadStream('doc.docx');
+const elements2 = await parseDocxToArray(stream);
+
 console.log(`Document has ${elements.length} elements`);
 ```
 
@@ -110,10 +168,17 @@ Extracts only text from the document.
 
 ```typescript
 import { extractText } from 'docx-parser';
+import { createReadStream } from 'fs';
 
+// From buffer
 const text = await extractText(buffer, {
   preserveFormatting: true
 });
+
+// From ReadStream
+const stream = createReadStream('doc.docx');
+const text2 = await extractText(stream);
+
 console.log(text);
 ```
 
@@ -122,9 +187,16 @@ Extracts only images from the document.
 
 ```typescript
 import { extractImages } from 'docx-parser';
+import { createReadStream } from 'fs';
 
+// From buffer
 for await (const image of extractImages(buffer)) {
   console.log(`Image: ${image.metadata?.filename}`);
+}
+
+// From ReadStream
+const stream = createReadStream('doc.docx');
+for await (const image of extractImages(stream)) {
   // image.content contains the image Buffer
 }
 ```
@@ -134,8 +206,15 @@ Extracts only metadata from the document.
 
 ```typescript
 import { getMetadata } from 'docx-parser';
+import { createReadStream } from 'fs';
 
+// From buffer
 const metadata = await getMetadata(buffer);
+
+// From ReadStream
+const stream = createReadStream('doc.docx');
+const metadata2 = await getMetadata(stream);
+
 console.log(`Title: ${metadata.title}`);
 console.log(`Author: ${metadata.author}`);
 console.log(`Created: ${metadata.created}`);
