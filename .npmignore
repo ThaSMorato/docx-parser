@@ -1,0 +1,54 @@
+# Source files
+src/
+tests/
+*.test.ts
+*.spec.ts
+
+# Configuration files
+tsconfig.json
+vitest.config.ts
+tsup.config.ts
+eslint.config.js
+.prettierrc
+.gitignore
+.npmignore
+
+# Development dependencies
+node_modules/
+coverage/
+.nyc_output/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Documentation source
+project/
+docs/
+
+# Git files
+.git/
+.gitignore
+
+# CI/CD files
+.github/
+.travis.yml
+.circleci/
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# Temporary files
+tmp/
+temp/

@@ -1,0 +1,84 @@
+{
+  "name": "docx-parser",
+  "version": "1.0.0",
+  "description": "A modern JavaScript library for parsing and processing Microsoft Word DOCX documents with support for both buffer and stream operations",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prebuild": "pnpm clean",
+    "prepublishOnly": "pnpm build && pnpm test && pnpm lint",
+    "release": "pnpm prepublishOnly && pnpm publish"
+  },
+  "keywords": [
+    "docx",
+    "parser",
+    "document",
+    "word",
+    "microsoft",
+    "office",
+    "ooxml",
+    "typescript",
+    "buffer",
+    "stream"
+  ],
+  "author": "ThaSMorato",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.0.4",
+    "@vitest/ui": "^1.0.4",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "^3.1.1",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThaSMorato/docx-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ThaSMorato/docx-parser/issues"
+  },
+  "homepage": "https://github.com/ThaSMorato/docx-parser#readme"
+}
