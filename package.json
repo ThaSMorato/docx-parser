@@ -1,7 +1,7 @@
 {
   "name": "@thasmorato/docx-parser",
   "version": "1.0.0",
-  "description": "A modern JavaScript library for parsing and processing Microsoft Word DOCX documents with support for both buffer and stream operations",
+  "description": "A modern JavaScript library for parsing and processing Microsoft Word DOCX documents with support for both buffer and stream operations. Features incremental parsing, checkbox detection, footnote support, and document validation.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -15,7 +15,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup",
@@ -34,9 +35,9 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "prebuild": "pnpm clean",
-    "prepublishOnly": "pnpm build && pnpm test && pnpm lint",
-    "release": "pnpm prepublishOnly && pnpm publish"
+    "prebuild": "npm run clean",
+    "prepublishOnly": "npm run build && npm run test && npm run lint",
+    "release": "npm run prepublishOnly && npm publish"
   },
   "keywords": [
     "docx",
@@ -48,13 +49,29 @@
     "ooxml",
     "typescript",
     "buffer",
-    "stream"
+    "stream",
+    "generator",
+    "async",
+    "incremental",
+    "checkbox",
+    "footnote",
+    "validation",
+    "clean-architecture",
+    "memory-efficient"
   ],
-  "author": "ThaSMorato",
+  "author": {
+    "name": "ThaSMorato",
+    "email": "thales.morato@example.com",
+    "url": "https://github.com/ThaSMorato"
+  },
   "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=22.11.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
     "@types/node": "^22.11.0",
@@ -80,5 +97,9 @@
   "bugs": {
     "url": "https://github.com/ThaSMorato/docx-parser/issues"
   },
-  "homepage": "https://github.com/ThaSMorato/docx-parser#readme"
+  "homepage": "https://github.com/ThaSMorato/docx-parser#readme",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/ThaSMorato"
+  }
 }

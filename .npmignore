@@ -1,54 +1,54 @@
-# Source files
+# Source files (only dist should be published)
 src/
 tests/
-*.test.ts
-*.spec.ts
+examples/
+
+# Development files
+.github/
+.vscode/
+.idea/
 
 # Configuration files
-tsconfig.json
-vitest.config.ts
-tsup.config.ts
-eslint.config.js
-.prettierrc
+.eslintrc*
+.prettierrc*
 .gitignore
-.npmignore
+.env*
+.nvmrc
+.node-version
 
-# Development dependencies
-node_modules/
+# Test files
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
 coverage/
 .nyc_output/
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
+# Build tools
+tsconfig*.json
+vitest.config.ts
+tsup.config.ts
 
-# OS files
+# Development dependencies
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Temporary files
+*.log
+*.tmp
+*.temp
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-logs/
-
-# Documentation source
-project/
+# Documentation (except README)
 docs/
+project/
 
-# Git files
-.git/
-.gitignore
-
-# CI/CD files
-.github/
-.travis.yml
-.circleci/
-
-# Test artifacts
-test-results/
-playwright-report/
-
-# Temporary files
-tmp/
-temp/
+# Keep these files for NPM
+# README.md (included by default)
+# LICENSE (included by default)
+# CHANGELOG.md (included in package.json files)
+# dist/ (included in package.json files)
+# package.json (included by default)

@@ -20,11 +20,11 @@ A modern JavaScript/TypeScript library for parsing DOCX documents using generato
 ## 📦 Installation
 
 ```bash
-npm install docx-parser
+npm install @thasmorato/docx-parser
 # or
-yarn add docx-parser
+yarn add @thasmorato/docx-parser
 # or
-pnpm add docx-parser
+pnpm add @thasmorato/docx-parser
 ```
 
 ## 🔥 Basic Usage
@@ -472,6 +472,36 @@ try {
 3. Commit your changes
 4. Push to the branch
 5. Open a Pull Request
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/ThaSMorato/docx-parser.git
+cd docx-parser
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Run linting
+npm run lint
+
+# Build the project
+npm run build
+```
+
+### Automated Publishing
+
+This project uses GitHub Actions for automated NPM publishing with semantic versioning:
+
+- **MAJOR**: `MAJOR: breaking change` or `BREAKING CHANGE` in commit
+- **MINOR**: `MINOR: new feature` or `feat:` prefix
+- **PATCH**: `fix:`, `docs:`, `chore:` or any other commit type
+
+See [`.github/VERSIONING.md`](.github/VERSIONING.md) for detailed information about the versioning system.
 
 ## 📄 License
 
