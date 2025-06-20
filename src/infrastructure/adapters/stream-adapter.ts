@@ -1,4 +1,5 @@
 import type { ReadStream } from 'node:fs';
+import type { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
 /**
@@ -38,11 +39,44 @@ export class StreamAdapter {
   }
 
   /**
-   * Converte ReadableStream da web para Buffer
-   * @param stream - ReadableStream da web
-   * @returns Promise que resolve para Buffer
+   * Verifica se é um Web ReadableStream
    */
-  static async toBuffer(stream: ReadableStream<Uint8Array>): Promise<Buffer> {
+  private static isWebReadableStream(stream: any): stream is ReadableStream<Uint8Array> {
+    return stream && typeof stream.getReader === 'function';
+  }
+
+  /**
+   * Verifica se é um Node.js Readable stream
+   */
+  private static isNodeReadableStream(stream: any): stream is Readable {
+    return stream && typeof stream.read === 'function' && typeof stream.on === 'function';
+  }
+
+  /**
+   * Converte Node.js Readable stream para Buffer
+   */
+  private static async nodeStreamToBuffer(stream: Readable): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+
+    return new Promise((resolve, reject) => {
+      stream.on('data', (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+
+      stream.on('end', () => {
+        resolve(Buffer.concat(chunks));
+      });
+
+      stream.on('error', (error) => {
+        reject(error);
+      });
+    });
+  }
+
+  /**
+   * Converte Web ReadableStream para Buffer
+   */
+  private static async webStreamToBuffer(stream: ReadableStream<Uint8Array>): Promise<Buffer> {
     const chunks: Uint8Array[] = [];
     const reader = stream.getReader();
 
@@ -60,6 +94,22 @@ export class StreamAdapter {
     }
 
     return Buffer.concat(chunks);
+  }
+
+  /**
+   * Converte ReadableStream (Web ou Node.js) para Buffer
+   * Detecta automaticamente o tipo de stream e usa a conversão apropriada
+   * @param stream - ReadableStream da web ou Node.js Readable stream
+   * @returns Promise que resolve para Buffer
+   */
+  static async toBuffer(stream: ReadableStream<Uint8Array> | Readable): Promise<Buffer> {
+    if (this.isWebReadableStream(stream)) {
+      return this.webStreamToBuffer(stream);
+    } else if (this.isNodeReadableStream(stream)) {
+      return this.nodeStreamToBuffer(stream);
+    } else {
+      throw new Error('Stream type not supported. Expected Web ReadableStream or Node.js Readable stream.');
+    }
   }
 
   /**
@@ -83,6 +133,37 @@ export class StreamAdapter {
 
         controller.enqueue(uint8Array);
         position += chunk.length;
+      }
+    });
+  }
+
+  /**
+   * Converte Node.js Readable stream para Web ReadableStream
+   * Útil para requisições HTTP (axios, fetch, etc)
+   * @param nodeStream - Node.js Readable stream
+   * @returns ReadableStream da web API
+   */
+  static nodeToWebStream(nodeStream: Readable): ReadableStream<Uint8Array> {
+    return new ReadableStream<Uint8Array>({
+      start(controller) {
+        nodeStream.on('data', (chunk: Buffer) => {
+          const uint8Array = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+          controller.enqueue(uint8Array);
+        });
+
+        nodeStream.on('end', () => {
+          controller.close();
+        });
+
+        nodeStream.on('error', (error) => {
+          controller.error(error);
+        });
+      },
+
+      cancel() {
+        if (nodeStream.destroy) {
+          nodeStream.destroy();
+        }
       }
     });
   }

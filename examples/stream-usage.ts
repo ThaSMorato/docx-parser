@@ -9,7 +9,9 @@
 
 import { createReadStream } from 'fs';
 
-import { parseDocxStream, parseDocxWebStream, StreamAdapter } from '../src';
+import { parseDocxHttpStream, parseDocxStream, parseDocxWebStream } from '../src';
+import type { DocumentElement } from '../src/domain/types';
+import { StreamAdapter } from '../src/infrastructure/adapters/stream-adapter';
 
 // Exemplo 1: Usando ReadStream normal (Node.js)
 async function exemploReadStreamNormal() {
@@ -90,6 +92,46 @@ async function exemploUtilitiesStream() {
   console.log(`📄 Conteúdo: ${bufferFromStream.toString()}`);
 }
 
+/**
+ * Exemplo: Usando parseDocxHttpStream com requisições HTTP (axios, etc)
+ */
+async function exampleHttpStream() {
+  try {
+    console.log('\n=== HTTP Stream Example ===');
+
+    // Simulação de como usar com axios
+    // import axios from 'axios';
+    // const response = await axios({
+    //   method: 'get',
+    //   url: 'https://exemplo.com/documento.docx',
+    //   responseType: 'stream'
+    // });
+
+    // Para este exemplo, vamos simular um stream HTTP usando um arquivo local
+    const httpLikeStream = createReadStream('./tests/e2e/text-only.docx');
+
+    console.log('Parsing DOCX from HTTP-like stream...');
+
+    const elements: DocumentElement[] = [];
+    for await (const element of parseDocxHttpStream(httpLikeStream)) {
+      elements.push(element);
+    }
+
+    console.log(`HTTP stream parsing completed: ${elements.length} elements`);
+
+    // Group by type
+    const grouped = elements.reduce((acc, el) => {
+      acc[el.type] = (acc[el.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    console.log('Elements by type:', grouped);
+
+  } catch (error) {
+    console.error('HTTP stream error:', error);
+  }
+}
+
 // Executa todos os exemplos
 async function executarExemplos() {
   console.log('🚀 Demonstração: ReadStream vs ReadableStream\n');
@@ -98,6 +140,7 @@ async function executarExemplos() {
   await exemploConversaoManual();
   await exemploComparacao();
   await exemploUtilitiesStream();
+  await exampleHttpStream();
 
   console.log('\n✨ Conclusão:');
   console.log('- Use parseDocxStream() para ReadStream do Node.js (mais simples)');
