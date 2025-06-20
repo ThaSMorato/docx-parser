@@ -36,6 +36,7 @@ The library exports only essential items for a clean API:
 import {
   parseDocx,           // Buffer → AsyncGenerator
   parseDocxStream,     // ReadStream → AsyncGenerator
+  parseDocxHttpStream, // HTTP Readable Stream → AsyncGenerator
   parseDocxWebStream,  // ReadableStream → AsyncGenerator
   parseDocxFile,       // File path → AsyncGenerator
   parseDocxToArray,    // Any source → Promise<Array>
@@ -106,18 +107,28 @@ for await (const element of parseDocxFile('./document.docx')) {
 ### Stream Parsing
 
 ```typescript
-import { parseDocxStream, parseDocxWebStream } from 'docx-parser';
+import { parseDocxStream, parseDocxHttpStream, parseDocxWebStream } from 'docx-parser';
 import { createReadStream } from 'fs';
+import axios from 'axios';
 
-// Usando ReadStream do Node.js (recomendado para arquivos locais)
+// Using Node.js ReadStream (recommended for local files)
 const fileStream = createReadStream('./document.docx');
 for await (const element of parseDocxStream(fileStream)) {
   console.log(element.type);
 }
 
-// Usando ReadableStream da web (para fetch, responses, etc.)
-const response = await fetch('https://example.com/document.docx');
-const webStream = response.body!;
+// Using HTTP streams (axios, fetch, etc.) - NEW!
+const response = await axios({
+  url: 'https://example.com/document.docx',
+  responseType: 'stream'
+});
+for await (const element of parseDocxHttpStream(response.data)) {
+  console.log(element.type);
+}
+
+// Using Web ReadableStream (for fetch, responses, etc.)
+const fetchResponse = await fetch('https://example.com/document.docx');
+const webStream = fetchResponse.body!;
 for await (const element of parseDocxWebStream(webStream)) {
   console.log(element.type);
 }
@@ -129,14 +140,14 @@ for await (const element of parseDocxWebStream(webStream)) {
 import { StreamAdapter } from 'docx-parser';
 import { createReadStream } from 'fs';
 
-// Converter ReadStream para ReadableStream da web
+// Convert ReadStream to Web ReadableStream
 const nodeStream = createReadStream('./document.docx');
 const webStream = StreamAdapter.toWebStream(nodeStream);
 
-// Converter ReadableStream para Buffer
+// Convert ReadableStream to Buffer
 const buffer = await StreamAdapter.toBuffer(webStream);
 
-// Criar ReadableStream a partir de Buffer
+// Create ReadableStream from Buffer
 const streamFromBuffer = StreamAdapter.fromBuffer(buffer);
 ```
 
@@ -281,6 +292,98 @@ if (!result.isValid) {
   console.log('Valid document!');
 }
 ```
+
+## 🌐 HTTP Streams Support
+
+The library now supports **HTTP streams** from popular libraries like axios, fetch, and others. This resolves the common error `"stream.getReader is not a function"` when working with HTTP responses.
+
+### Using with Axios
+
+```typescript
+import axios from 'axios';
+import { parseDocxHttpStream, parseDocxToArray } from 'docx-parser';
+
+// Method 1: Specific HTTP stream function (recommended)
+async function parseFromUrl(url: string) {
+  const response = await axios({
+    method: 'get',
+    url: url,
+    responseType: 'stream'  // Important: use 'stream', not 'buffer'
+  });
+
+  for await (const element of parseDocxHttpStream(response.data)) {
+    console.log(`${element.type}: ${element.content}`);
+  }
+}
+
+// Method 2: Automatic detection
+async function parseToArray(url: string) {
+  const response = await axios({
+    method: 'get',
+    url: url,
+    responseType: 'stream'
+  });
+
+  // parseDocxToArray automatically detects Node.js streams
+  const elements = await parseDocxToArray(response.data, {
+    includeImages: true,
+    includeTables: true
+  });
+
+  return elements;
+}
+```
+
+### Using with Fetch API
+
+```typescript
+// Fetch API (Node.js 18+)
+const response = await fetch('https://example.com/document.docx');
+if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+// response.body is a Web ReadableStream - works automatically
+const elements = await parseDocxToArray(response.body);
+```
+
+### Error Handling for HTTP Streams
+
+```typescript
+import axios from 'axios';
+import { parseDocxHttpStream } from 'docx-parser';
+
+async function safeParseFromUrl(url: string) {
+  try {
+    const response = await axios({
+      method: 'get',
+      url: url,
+      responseType: 'stream',
+      timeout: 30000,  // 30 seconds timeout
+      headers: {
+        'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      }
+    });
+
+    const elements = [];
+    for await (const element of parseDocxHttpStream(response.data)) {
+      elements.push(element);
+    }
+
+    return elements;
+
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('HTTP Error:', error.response?.status, error.message);
+    } else if (error.name === 'DocxParseError') {
+      console.error('DOCX Parse Error:', error.message);
+    } else {
+      console.error('Unknown Error:', error);
+    }
+    throw error;
+  }
+}
+```
+
+**📖 For complete HTTP streams documentation, see:** [`project/HTTP_STREAMS_GUIDE.md`](./project/HTTP_STREAMS_GUIDE.md)
 
 ## ⚙️ Configuration Options
 
