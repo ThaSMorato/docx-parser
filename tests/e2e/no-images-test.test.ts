@@ -6,21 +6,21 @@ import { extractImages } from '../../src';
 import type { DocumentElement } from '../../src/domain/types';
 
 describe('E2E: extractImages with no images', () => {
-  // Usar um arquivo que sabemos que não tem imagens (text-only)
+  // Use a file we know has no images (text-only)
   const TEXT_ONLY_DOCX = './tests/e2e/text-only.docx';
 
   it('should handle documents without images gracefully', async () => {
     const buffer = readFileSync(TEXT_ONLY_DOCX);
     const images: DocumentElement[] = [];
 
-    // Testar iteração sobre o resultado
+    // Test iteration over the result
     try {
       for await (const image of extractImages(buffer)) {
         images.push(image);
         console.log(`Found image: ${image.type}`);
       }
 
-      // Deve completar sem erro, mesmo sem imagens
+      // Should complete without error, even without images
       expect(images).toHaveLength(0);
       console.log(`✅ Successfully iterated over extractImages result: ${images.length} images found`);
     } catch (error) {
@@ -32,10 +32,10 @@ describe('E2E: extractImages with no images', () => {
   it('should return empty generator when no images exist', async () => {
     const buffer = readFileSync(TEXT_ONLY_DOCX);
 
-    // Verificar que o generator funciona mesmo vazio
+    // Verify that the generator works even when empty
     const generator = extractImages(buffer);
 
-    // Testar primeiro next()
+    // Test first next()
     const firstResult = await generator.next();
     expect(firstResult.done).toBe(true);
     expect(firstResult.value).toBeUndefined();
@@ -47,10 +47,10 @@ describe('E2E: extractImages with no images', () => {
     const buffer = readFileSync(TEXT_ONLY_DOCX);
     let iterationCount = 0;
 
-    // Testar diferentes padrões de iteração
+    // Test different iteration patterns
     for await (const image of extractImages(buffer)) {
       iterationCount++;
-      expect(image.type).toBe('image'); // Nunca deve executar
+      expect(image.type).toBe('image'); // Should never execute
     }
 
     expect(iterationCount).toBe(0);
@@ -62,7 +62,7 @@ describe('E2E: extractImages with no images', () => {
     const generator = extractImages(buffer);
     const results: DocumentElement[] = [];
 
-    // Iteração manual
+    // Manual iteration
     let done = false;
     while (!done) {
       const result = await generator.next();
@@ -80,7 +80,7 @@ describe('E2E: extractImages with no images', () => {
   it('should work with Array.from conversion', async () => {
     const buffer = readFileSync(TEXT_ONLY_DOCX);
 
-    // Converter generator para array
+    // Convert generator to array
     const imagesArray: DocumentElement[] = [];
     for await (const image of extractImages(buffer)) {
       imagesArray.push(image);
@@ -113,7 +113,7 @@ describe('E2E: extractImages with no images', () => {
   it('should not throw errors during empty iteration', async () => {
     const buffer = readFileSync(TEXT_ONLY_DOCX);
 
-    // Múltiplas iterações para garantir estabilidade
+    // Multiple iterations to ensure stability
     for (let i = 0; i < 3; i++) {
       const images: DocumentElement[] = [];
 

@@ -3,19 +3,19 @@ import type { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
 /**
- * StreamAdapter - Classe para converter ReadStream normal para ReadableStream da web
+ * StreamAdapter - Class for converting normal ReadStream to web ReadableStream
  */
 export class StreamAdapter {
   /**
-   * Converte um ReadStream do Node.js para ReadableStream da web
-   * @param readStream - Stream de leitura do Node.js (fs.ReadStream)
-   * @returns ReadableStream da web API
+   * Converts a Node.js ReadStream to web ReadableStream
+   * @param readStream - Node.js read stream (fs.ReadStream)
+   * @returns Web API ReadableStream
    */
   static toWebStream(readStream: ReadStream): ReadableStream<Uint8Array> {
     return new ReadableStream<Uint8Array>({
       start(controller) {
         readStream.on('data', (chunk: string | Buffer) => {
-          // Converte Buffer para Uint8Array de forma eficiente
+          // Efficiently converts Buffer to Uint8Array
           const buffer = chunk instanceof Buffer ? chunk : Buffer.from(chunk);
           const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
 
@@ -32,28 +32,28 @@ export class StreamAdapter {
       },
 
       cancel() {
-        // Limpa o stream se cancelado
+        // Cleans up the stream if cancelled
         readStream.destroy();
       }
     });
   }
 
   /**
-   * Verifica se é um Web ReadableStream
+   * Checks if it's a Web ReadableStream
    */
   private static isWebReadableStream(stream: any): stream is ReadableStream<Uint8Array> {
     return stream && typeof stream.getReader === 'function';
   }
 
   /**
-   * Verifica se é um Node.js Readable stream
+   * Checks if it's a Node.js Readable stream
    */
   private static isNodeReadableStream(stream: any): stream is Readable {
     return stream && typeof stream.read === 'function' && typeof stream.on === 'function';
   }
 
   /**
-   * Converte Node.js Readable stream para Buffer
+   * Converts Node.js Readable stream to Buffer
    */
   private static async nodeStreamToBuffer(stream: Readable): Promise<Buffer> {
     const chunks: Buffer[] = [];
@@ -74,7 +74,7 @@ export class StreamAdapter {
   }
 
   /**
-   * Converte Web ReadableStream para Buffer
+   * Converts Web ReadableStream to Buffer
    */
   private static async webStreamToBuffer(stream: ReadableStream<Uint8Array>): Promise<Buffer> {
     const chunks: Uint8Array[] = [];
@@ -97,10 +97,10 @@ export class StreamAdapter {
   }
 
   /**
-   * Converte ReadableStream (Web ou Node.js) para Buffer
-   * Detecta automaticamente o tipo de stream e usa a conversão apropriada
-   * @param stream - ReadableStream da web ou Node.js Readable stream
-   * @returns Promise que resolve para Buffer
+   * Converts ReadableStream (Web or Node.js) to Buffer
+   * Automatically detects stream type and uses appropriate conversion
+   * @param stream - Web ReadableStream or Node.js Readable stream
+   * @returns Promise that resolves to Buffer
    */
   static async toBuffer(stream: ReadableStream<Uint8Array> | Readable): Promise<Buffer> {
     if (this.isWebReadableStream(stream)) {
@@ -113,9 +113,9 @@ export class StreamAdapter {
   }
 
   /**
-   * Cria um ReadableStream da web a partir de um Buffer
-   * @param buffer - Buffer a ser convertido
-   * @returns ReadableStream da web
+   * Creates a web ReadableStream from a Buffer
+   * @param buffer - Buffer to be converted
+   * @returns Web ReadableStream
    */
   static fromBuffer(buffer: Buffer): ReadableStream<Uint8Array> {
     let position = 0;
@@ -138,10 +138,10 @@ export class StreamAdapter {
   }
 
   /**
-   * Converte Node.js Readable stream para Web ReadableStream
-   * Útil para requisições HTTP (axios, fetch, etc)
+   * Converts Node.js Readable stream to Web ReadableStream
+   * Useful for HTTP requests (axios, fetch, etc)
    * @param nodeStream - Node.js Readable stream
-   * @returns ReadableStream da web API
+   * @returns Web API ReadableStream
    */
   static nodeToWebStream(nodeStream: Readable): ReadableStream<Uint8Array> {
     return new ReadableStream<Uint8Array>({

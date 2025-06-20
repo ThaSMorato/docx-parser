@@ -32,7 +32,7 @@ export async function* parseDocxStream(
 }
 
 /**
- * Parse a DOCX document from a Node.js Readable stream (como de requisições HTTP), yielding elements incrementally
+ * Parse a DOCX document from a Node.js Readable stream (from HTTP requests), yielding elements incrementally
  */
 export async function* parseDocxHttpStream(
   stream: Readable,
@@ -77,11 +77,11 @@ export async function parseDocxToArray(
   if (source instanceof Buffer) {
     return useCase.execute(source, options);
   } else if ('readable' in source && 'path' in source) {
-    // ReadStream do Node.js (arquivo)
+    // Node.js ReadStream (file)
     const webStream = StreamAdapter.toWebStream(source as ReadStream);
     return useCase.execute(webStream, options);
   } else if (typeof (source as any).getReader === 'function') {
-    // ReadableStream da web
+    // Web ReadableStream
     return useCase.execute(source as ReadableStream, options);
   } else if (typeof (source as any).read === 'function' && typeof (source as any).on === 'function') {
     // Node.js Readable stream (HTTP requests, etc)
@@ -104,11 +104,11 @@ export async function extractText(
   if (source instanceof Buffer) {
     return useCase.extractText(source, options);
   } else if ('readable' in source && 'path' in source) {
-    // ReadStream do Node.js (arquivo)
+    // Node.js ReadStream (file)
     const webStream = StreamAdapter.toWebStream(source as ReadStream);
     return useCase.extractText(webStream, options);
   } else if (typeof (source as any).getReader === 'function') {
-    // ReadableStream da web
+    // Web ReadableStream
     return useCase.extractText(source as ReadableStream, options);
   } else if (typeof (source as any).read === 'function' && typeof (source as any).on === 'function') {
     // Node.js Readable stream (HTTP requests, etc)
@@ -130,11 +130,11 @@ export async function* extractImages(
   if (source instanceof Buffer) {
     yield* useCase.extractImages(source);
   } else if ('readable' in source && 'path' in source) {
-    // ReadStream do Node.js (arquivo)
+    // Node.js ReadStream (file)
     const webStream = StreamAdapter.toWebStream(source as ReadStream);
     yield* useCase.extractImages(webStream);
   } else if (typeof (source as any).getReader === 'function') {
-    // ReadableStream da web
+    // Web ReadableStream
     yield* useCase.extractImages(source as ReadableStream);
   } else if (typeof (source as any).read === 'function' && typeof (source as any).on === 'function') {
     // Node.js Readable stream (HTTP requests, etc)
@@ -156,11 +156,11 @@ export async function getMetadata(
   if (source instanceof Buffer) {
     return useCase.extractMetadata(source);
   } else if ('readable' in source && 'path' in source) {
-    // ReadStream do Node.js (arquivo)
+    // Node.js ReadStream (file)
     const webStream = StreamAdapter.toWebStream(source as ReadStream);
     return useCase.extractMetadata(webStream);
   } else if (typeof (source as any).getReader === 'function') {
-    // ReadableStream da web
+    // Web ReadableStream
     return useCase.extractMetadata(source as ReadableStream);
   } else if (typeof (source as any).read === 'function' && typeof (source as any).on === 'function') {
     // Node.js Readable stream (HTTP requests, etc)
@@ -169,4 +169,17 @@ export async function getMetadata(
   } else {
     throw new Error('Unsupported source type');
   }
+}
+
+/**
+ * Parse a DOCX document from a Node.js Readable stream (from stream module), yielding elements incrementally
+ * This is a generic function for any Node.js Readable stream, including custom streams, transformed streams, etc.
+ */
+export async function* parseDocxReadable(
+  stream: Readable,
+  options?: ParseOptions
+): AsyncGenerator<DocumentElement> {
+  const useCase = new ParseDocumentUseCaseImpl();
+  const webStream = StreamAdapter.nodeToWebStream(stream);
+  yield* useCase.execute(webStream, options);
 }

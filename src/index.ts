@@ -8,6 +8,7 @@ export {
   parseDocx,
   parseDocxStream,
   parseDocxHttpStream,
+  parseDocxReadable,
   parseDocxWebStream,
   parseDocxFile,
   parseDocxToArray,

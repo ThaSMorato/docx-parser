@@ -6,49 +6,49 @@ import { parseDocxHttpStream, parseDocxToArray } from '../src';
 import type { DocumentElement } from '../src/domain/types';
 
 /**
- * Exemplo prático: Como usar a biblioteca com requisições HTTP
+ * Practical example: How to use the library with HTTP requests
  */
 
-// Exemplo 1: Usando parseDocxHttpStream com generator
+// Example 1: Using parseDocxHttpStream with generator
 async function parseDocxFromUrl(url: string) {
   try {
-    console.log(`Fazendo download de: ${url}`);
+    console.log(`Downloading from: ${url}`);
 
-    // Fazendo requisição com axios e responseType: 'stream'
+    // Making request with axios and responseType: 'stream'
     const response = await axios({
       method: 'get',
       url,
-      responseType: 'stream'  // Importante: usar 'stream' não 'buffer'
+      responseType: 'stream'  // Important: use 'stream' not 'buffer'
     });
 
-    console.log('Processando documento DOCX...');
+    console.log('Processing DOCX document...');
 
-    // Usando o generator para processar incrementalmente
+    // Using the generator to process incrementally
     const elements: DocumentElement[] = [];
     for await (const element of parseDocxHttpStream(response.data)) {
       elements.push(element);
 
-      // Processar cada elemento conforme necessário
+      // Process each element as needed
       if (element.type === 'paragraph') {
-        console.log(`Parágrafo: ${element.content}`);
+        console.log(`Paragraph: ${element.content}`);
       } else if (element.type === 'image') {
-        console.log(`Imagem encontrada: ${(element as any).metadata?.filename}`);
+        console.log(`Image found: ${(element as any).metadata?.filename}`);
       }
     }
 
-    console.log(`Processamento concluído: ${elements.length} elementos`);
+    console.log(`Processing completed: ${elements.length} elements`);
     return elements;
 
   } catch (error) {
-    console.error('Erro ao processar documento:', error);
+    console.error('Error processing document:', error);
     throw error;
   }
 }
 
-// Exemplo 2: Usando parseDocxToArray para obter todos os elementos de uma vez
+// Example 2: Using parseDocxToArray to get all elements at once
 async function parseDocxToArrayFromUrl(url: string) {
   try {
-    console.log(`Fazendo download de: ${url}`);
+    console.log(`Downloading from: ${url}`);
 
     const response = await axios({
       method: 'get',
@@ -56,73 +56,73 @@ async function parseDocxToArrayFromUrl(url: string) {
       responseType: 'stream'
     });
 
-    console.log('Convertendo para array...');
+    console.log('Converting to array...');
 
-    // Usando parseDocxToArray que agora suporta Node.js streams automaticamente
+    // Using parseDocxToArray which now supports Node.js streams automatically
     const elements = await parseDocxToArray(response.data, {
       includeImages: true,
       includeTables: true
     });
 
-    console.log(`Array gerado: ${elements.length} elementos`);
+    console.log(`Array generated: ${elements.length} elements`);
 
-    // Agrupar por tipo
+    // Group by type
     const grouped = elements.reduce((acc, el) => {
       acc[el.type] = (acc[el.type] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    console.log('Elementos por tipo:', grouped);
+    console.log('Elements by type:', grouped);
     return elements;
 
   } catch (error) {
-    console.error('Erro ao processar documento:', error);
+    console.error('Error processing document:', error);
     throw error;
   }
 }
 
-// Exemplo 3: Tratamento de diferentes tipos de stream automaticamente
+// Example 3: Automatic handling of different stream types
 async function parseFromAnySource(source: string | Buffer | Readable) {
   try {
     if (typeof source === 'string') {
-      // É uma URL
+      // It's a URL
       const response = await axios({
         method: 'get',
         url: source,
         responseType: 'stream'
       });
 
-      // parseDocxToArray detecta automaticamente o tipo de stream
+      // parseDocxToArray automatically detects the stream type
       return await parseDocxToArray(response.data);
 
     } else {
-      // É um Buffer ou Stream
+      // It's a Buffer or Stream
       return await parseDocxToArray(source);
     }
 
   } catch (error) {
-    console.error('Erro ao processar fonte:', error);
+    console.error('Error processing source:', error);
     throw error;
   }
 }
 
-// Demonstração de uso
+// Usage demonstration
 async function demonstrateUsage() {
   try {
-    console.log('=== Exemplos de uso configurados ===');
+    console.log('=== Configured usage examples ===');
     console.log('1. parseDocxFromUrl(url) - Generator-based parsing');
     console.log('2. parseDocxToArrayFromUrl(url) - Array conversion');
-    console.log('3. parseFromAnySource(source) - Fonte automática');
+    console.log('3. parseFromAnySource(source) - Automatic source');
 
-    console.log('\n✅ Todos os exemplos foram configurados corretamente!');
-    console.log('Para usar, chame as funções com suas URLs reais.');
+    console.log('\n✅ All examples have been configured correctly!');
+    console.log('To use, call the functions with your real URLs.');
 
   } catch (error) {
-    console.error('Erro na demonstração:', error);
+    console.error('Error in demonstration:', error);
   }
 }
 
-// Executar demonstração
+// Execute demonstration
 demonstrateUsage();
 
 export {

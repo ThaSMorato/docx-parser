@@ -37,6 +37,7 @@ import {
   parseDocx,           // Buffer → AsyncGenerator
   parseDocxStream,     // ReadStream → AsyncGenerator
   parseDocxHttpStream, // HTTP Readable Stream → AsyncGenerator
+  parseDocxReadable,   // Node.js Readable Stream → AsyncGenerator
   parseDocxWebStream,  // ReadableStream → AsyncGenerator
   parseDocxFile,       // File path → AsyncGenerator
   parseDocxToArray,    // Any source → Promise<Array>
@@ -181,6 +182,55 @@ import { createReadStream } from 'fs';
 
 const stream = createReadStream('doc.docx');
 for await (const element of parseDocxStream(stream)) {
+  // Process each element
+}
+```
+
+#### `parseDocxReadable(stream, options?)`
+Processes a DOCX from any Node.js Readable stream incrementally.
+
+```typescript
+import { parseDocxReadable } from 'docx-parser';
+import { Readable } from 'stream';
+
+// Custom Readable stream
+const customStream = new Readable({
+  read() {
+    // Custom stream logic
+  }
+});
+
+for await (const element of parseDocxReadable(customStream)) {
+  // Process each element
+}
+
+// Transform streams, pipeline streams, etc.
+import { Transform } from 'stream';
+const transformedStream = someStream.pipe(new Transform({
+  transform(chunk, encoding, callback) {
+    // Transform logic
+    callback(null, chunk);
+  }
+}));
+
+for await (const element of parseDocxReadable(transformedStream)) {
+  // Process transformed stream
+}
+```
+
+#### `parseDocxHttpStream(stream, options?)`
+Processes a DOCX from HTTP Readable streams (axios, fetch, etc.) incrementally.
+
+```typescript
+import { parseDocxHttpStream } from 'docx-parser';
+import axios from 'axios';
+
+const response = await axios({
+  url: 'https://example.com/doc.docx',
+  responseType: 'stream'
+});
+
+for await (const element of parseDocxHttpStream(response.data)) {
   // Process each element
 }
 ```
@@ -611,6 +661,40 @@ for await (const element of parseDocx(buffer)) {
       console.log(`${indent}  (contains page number)`);
     }
   }
+}
+```
+
+### Working with Node.js Readable Streams
+
+```typescript
+import { parseDocxReadable } from 'docx-parser';
+import { Readable, Transform, pipeline } from 'stream';
+import { promisify } from 'util';
+
+// Custom stream processing
+const customStream = new Readable({
+  read() {
+    // Custom logic to read DOCX data
+  }
+});
+
+for await (const element of parseDocxReadable(customStream)) {
+  console.log(`${element.type}: ${element.content}`);
+}
+
+// Pipeline with transforms
+const pipelineAsync = promisify(pipeline);
+const transformStream = new Transform({
+  transform(chunk, encoding, callback) {
+    // Apply transformations if needed
+    callback(null, chunk);
+  }
+});
+
+// Process transformed stream
+const transformedStream = someDocxStream.pipe(transformStream);
+for await (const element of parseDocxReadable(transformedStream)) {
+  console.log('Transformed element:', element);
 }
 ```
 

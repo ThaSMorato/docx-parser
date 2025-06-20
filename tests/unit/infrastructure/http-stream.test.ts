@@ -3,7 +3,7 @@ import { Readable } from 'node:stream';
 
 import { describe, expect, it } from 'vitest';
 
-import { parseDocxHttpStream, parseDocxToArray } from '../../../src';
+import { parseDocxHttpStream, parseDocxReadable, parseDocxToArray } from '../../../src';
 import type { DocumentElement } from '../../../src/domain/types';
 import { StreamAdapter } from '../../../src/infrastructure/adapters/stream-adapter';
 
@@ -104,6 +104,71 @@ describe('HTTP Stream Support', () => {
       expect(convertedBuffer.equals(buffer)).toBe(true);
 
       console.log(`Node → Web stream conversion: ${convertedBuffer.length} bytes`);
+    });
+  });
+
+  describe('parseDocxReadable - Generic Node.js streams', () => {
+    it('should parse DOCX from generic Node.js Readable stream', async () => {
+      const buffer = readFileSync('./tests/e2e/text-only.docx');
+      const readableStream = createHttpLikeStream(buffer);
+
+      const elements: DocumentElement[] = [];
+      for await (const element of parseDocxReadable(readableStream)) {
+        elements.push(element);
+      }
+
+      expect(elements.length).toBeGreaterThan(0);
+      expect(elements.some(el => el.type === 'metadata')).toBe(true);
+      expect(elements.some(el => el.type === 'paragraph')).toBe(true);
+
+      console.log(`parseDocxReadable processed ${elements.length} elements`);
+    });
+
+    it('should handle custom Readable stream implementations', async () => {
+      const buffer = readFileSync('./tests/e2e/text-only.docx');
+      let position = 0;
+
+      // Custom Readable stream implementation
+      const customStream = new Readable({
+        read(size) {
+          if (position >= buffer.length) {
+            this.push(null);
+            return;
+          }
+
+          const chunk = buffer.subarray(position, Math.min(position + (size || 1024), buffer.length));
+          position += chunk.length;
+          this.push(chunk);
+        }
+      });
+
+      const elements: DocumentElement[] = [];
+      for await (const element of parseDocxReadable(customStream)) {
+        elements.push(element);
+      }
+
+      expect(elements.length).toBeGreaterThan(0);
+      expect(elements.some(el => el.type === 'metadata')).toBe(true);
+      expect(elements.some(el => el.type === 'paragraph')).toBe(true);
+
+      console.log(`Custom Readable stream processed ${elements.length} elements`);
+    });
+
+    it('should handle stream errors in parseDocxReadable', async () => {
+      const errorStream = new Readable({
+        read() {
+          // Emit error after next tick
+          process.nextTick(() => {
+            this.emit('error', new Error('Custom stream error'));
+          });
+        }
+      });
+
+      await expect(async () => {
+        for await (const element of parseDocxReadable(errorStream)) {
+          console.log(element);
+        }
+      }).rejects.toThrow('Custom stream error');
     });
   });
 
